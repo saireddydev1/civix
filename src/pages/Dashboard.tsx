@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { db, collection, query, onSnapshot, where, doc, updateDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
-import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, RefreshCw, Edit2, X, Loader2 } from 'lucide-react';
+import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, RefreshCw, Edit2, X, Loader2, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { DEPARTMENTS } from '../constants';
+import { seedDemoData } from '../utils/seedData';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Dashboard() {
-  const { user, profile } = useAuth();
-  const [myIssues, setMyIssues] = useState([]);
+  const { user, profile, setProfile } = useAuth();
+  const [myIssues, setMyIssues] = useState<any[]>([]);
   const [updating, setUpdating] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [editingIssue, setEditingIssue] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -24,6 +26,20 @@ export default function Dashboard() {
     });
     return unsubscribe;
   }, [user]);
+
+  const handleSeedData = async () => {
+    if (!user) return;
+    setSeeding(true);
+    try {
+      await seedDemoData(user.uid, profile?.displayName || 'Demo User');
+      alert("Sample civic issues successfully seeded! Check your Feed and City Map.");
+    } catch (error) {
+      console.error("Seeding failed:", error);
+      alert("Could not seed data. Please check Firestore security rules.");
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const handleUpdateIssue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +69,7 @@ export default function Dashboard() {
         role,
         departmentId: deptId || null
       });
-      window.location.reload(); // Refresh to update profile context
+      setProfile((prev: any) => ({ ...prev, role, departmentId: deptId || null }));
     } catch (error) {
       console.error("Failed to switch role", error);
     } finally {
@@ -61,7 +77,7 @@ export default function Dashboard() {
     }
   };
 
-  const getDeptIcon = (id) => {
+  const getDeptIcon = (id: any) => {
     switch(id) {
       case 'municipal': return <Building2 className="w-4 h-4" />;
       case 'transport': return <Truck className="w-4 h-4" />;
@@ -95,14 +111,23 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
-        <div className="flex gap-4">
-          <div className="text-center px-6 py-3 bg-zinc-50 rounded-2xl">
-            <div className="text-2xl font-bold text-zinc-900">{myIssues.length}</div>
-            <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Reports</div>
+        <div className="flex flex-wrap gap-3 items-center">
+          <button
+            onClick={handleSeedData}
+            disabled={seeding}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
+            title="Seed sample complaints for presentation"
+          >
+            {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span>Seed Demo Issues</span>
+          </button>
+          <div className="text-center px-5 py-3 bg-zinc-50 rounded-2xl">
+            <div className="text-xl font-bold text-zinc-900">{myIssues.length}</div>
+            <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Reports</div>
           </div>
-          <div className="text-center px-6 py-3 bg-emerald-50 rounded-2xl">
-            <div className="text-2xl font-bold text-emerald-600">{myIssues.filter(i => i.status === 'resolved').length}</div>
-            <div className="text-xs font-medium text-emerald-400 uppercase tracking-wider">Resolved</div>
+          <div className="text-center px-5 py-3 bg-emerald-50 rounded-2xl">
+            <div className="text-xl font-bold text-emerald-600">{myIssues.filter(i => i.status === 'resolved').length}</div>
+            <div className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Resolved</div>
           </div>
         </div>
       </div>

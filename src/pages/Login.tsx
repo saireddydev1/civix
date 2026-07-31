@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  auth, 
-  googleProvider, 
-  signInWithPopup, 
-  db, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  updateProfile 
+import {
+  auth,
+  googleProvider,
+  signInWithPopup,
+  db,
+  doc,
+  setDoc,
+  getDoc,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from '../firebase';
 import { useLanguage } from '../LanguageContext';
 import { useAuth } from '../AuthContext';
-import { 
-  ShieldCheck, 
-  User, 
-  Loader2, 
-  Mail, 
-  Lock, 
-  AlertCircle, 
-  Eye, 
-  EyeOff, 
+import {
+  ShieldCheck,
+  User,
+  Loader2,
+  Mail,
+  Lock,
+  AlertCircle,
+  Eye,
+  EyeOff,
   ArrowRight
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -31,7 +31,7 @@ export default function Login() {
   const { t } = useLanguage();
   const { user: authUser } = useAuth();
   const navigate = useNavigate();
-  
+
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -168,7 +168,7 @@ export default function Login() {
 
       <div className="max-w-md w-full relative z-10 my-8">
         <div className="text-center mb-8">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4 }}
@@ -190,9 +190,8 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setAuthMode('signin'); setError(null); }}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 ${
-                authMode === 'signin' ? 'text-emerald-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-              }`}
+              className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 ${authMode === 'signin' ? 'text-emerald-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
+                }`}
             >
               {authMode === 'signin' && (
                 <motion.div
@@ -206,9 +205,8 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setAuthMode('signup'); setError(null); }}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 ${
-                authMode === 'signup' ? 'text-emerald-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-              }`}
+              className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 ${authMode === 'signup' ? 'text-emerald-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
+                }`}
             >
               {authMode === 'signup' && (
                 <motion.div
@@ -222,7 +220,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-5 p-4 bg-red-50/90 border border-red-200/80 rounded-2xl flex items-start gap-3 text-left"
