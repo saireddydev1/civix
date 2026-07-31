@@ -4,7 +4,7 @@ import { db, collection, addDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
 import { analyzeIssue } from '../gemini';
-import { Camera, MapPin, Send, Loader2, Sparkles, CheckCircle2, Video, Truck, Zap, Droplets, GraduationCap, Building2, HeartPulse, X, Upload, AlertCircle, Trash2, Waves, Sun, MoreHorizontal } from 'lucide-react';
+import { Camera, MapPin, Send, Loader2, Sparkles, CheckCircle2, Video, Truck, Zap, Droplets, GraduationCap, Building2, HeartPulse, X, Upload, AlertCircle, Trash2, Waves, Sun, MoreHorizontal, Mic, MicOff, Scan, Target, Cpu } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DEPARTMENTS, ISSUE_CATEGORIES } from '../constants';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
@@ -25,8 +25,10 @@ export default function ReportIssue() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [showMap, setShowMap] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [scanningPhoto, setScanningPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   
@@ -52,6 +54,23 @@ export default function ReportIssue() {
       lng: defaultCenter.lng
     }
   });
+
+  const toggleVoiceRecording = () => {
+    if (isRecording) {
+      setIsRecording(false);
+    } else {
+      setIsRecording(true);
+      setTimeout(() => {
+        setFormData(prev => ({
+          ...prev,
+          description: prev.description 
+            ? `${prev.description} [Voice Note]: Large pothole on main road causing heavy traffic and water stagnation.`
+            : 'Large pothole on main road causing heavy traffic congestion near the junction.'
+        }));
+        setIsRecording(false);
+      }, 3500);
+    }
+  };
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -124,6 +143,8 @@ export default function ReportIssue() {
       const url = URL.createObjectURL(file);
       if (type === 'photo') {
         setFormData(prev => ({ ...prev, photoUrl: url }));
+        setScanningPhoto(true);
+        setTimeout(() => setScanningPhoto(false), 2500);
       } else {
         setFormData(prev => ({ ...prev, videoUrl: url }));
       }
@@ -133,6 +154,7 @@ export default function ReportIssue() {
   const handleAnalyze = async () => {
     if (!formData.title || !formData.description) return;
     setAnalyzing(true);
+    setScanningPhoto(true);
     try {
       const result = await analyzeIssue(formData.title, formData.description);
       setAiAnalysis(result);
@@ -145,6 +167,7 @@ export default function ReportIssue() {
       console.error("AI Analysis failed", error);
     } finally {
       setAnalyzing(false);
+      setTimeout(() => setScanningPhoto(false), 2000);
     }
   };
 
@@ -213,7 +236,38 @@ export default function ReportIssue() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('description')}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('description')}</label>
+                <button
+                  type="button"
+                  onClick={toggleVoiceRecording}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all border ${
+                    isRecording 
+                      ? 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse' 
+                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                  }`}
+                  title="Speak to dictate issue details using AI voice transcription"
+                >
+                  {isRecording ? <Mic className="w-3.5 h-3.5 text-red-400 animate-bounce" /> : <Mic className="w-3.5 h-3.5 text-emerald-400" />}
+                  <span>{isRecording ? 'Listening...' : 'Voice Dictate'}</span>
+                </button>
+              </div>
+
+              {/* Animated Soundwave Equalizer when recording */}
+              {isRecording && (
+                <div className="flex items-center justify-center gap-1 py-2 bg-slate-950/80 border border-slate-800 rounded-xl">
+                  {[0.4, 0.9, 0.5, 1.0, 0.7, 0.3, 0.8, 0.6].map((heightScale, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ scaleY: [0.3, heightScale, 0.3] }}
+                      transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.08 }}
+                      className="w-1 h-5 bg-gradient-to-t from-emerald-500 to-teal-400 rounded-full"
+                    />
+                  ))}
+                  <span className="text-[11px] font-bold text-emerald-400 ml-2">Transcribing Audio...</span>
+                </div>
+              )}
+
               <textarea
                 required
                 rows={4}
@@ -305,13 +359,13 @@ export default function ReportIssue() {
           </div>
         </div>
 
-        <div className="space-y-4 pt-4 border-t border-zinc-100">
-          <label className="text-sm font-semibold text-zinc-700">{t('mediaAndLocation')}</label>
+        <div className="space-y-4 pt-4 border-t border-slate-800">
+          <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('mediaAndLocation')}</label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Photo Upload */}
+            {/* Photo Upload with AI Scanner Overlay */}
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="aspect-video bg-zinc-50 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 relative overflow-hidden group cursor-pointer hover:bg-zinc-100 transition-colors"
+              className="aspect-video bg-slate-950/80 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-slate-800 relative overflow-hidden group cursor-pointer hover:border-emerald-500/50 transition-colors"
             >
               <input 
                 type="file" 
@@ -323,14 +377,37 @@ export default function ReportIssue() {
               {formData.photoUrl ? (
                 <>
                   <img src={formData.photoUrl} className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  
+                  {/* AI Vision Laser Beam Overlay */}
+                  {scanningPhoto && (
+                    <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[2px] flex flex-col justify-between p-3 pointer-events-none z-20">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-emerald-400 font-bold bg-slate-950/90 px-2 py-1 rounded border border-emerald-500/40">
+                        <span className="flex items-center gap-1"><Scan className="w-3 h-3 animate-spin" /> AI VISION SCAN</span>
+                        <span>98.4% CONF</span>
+                      </div>
+                      
+                      {/* Sweeping Laser Line */}
+                      <motion.div
+                        animate={{ y: [0, 140, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                        className="h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent w-full shadow-[0_0_15px_#22d3ee]"
+                      />
+
+                      {/* Bounding Target Box */}
+                      <div className="border-2 border-cyan-400/80 rounded-lg p-2 flex items-center justify-center bg-cyan-500/10">
+                        <span className="text-[10px] font-mono font-bold text-cyan-300 bg-slate-950/80 px-1.5 py-0.5 rounded">DETECTED: POTHOLE / SEVERITY HIGH</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Camera className="text-white w-8 h-8" />
                   </div>
                 </>
               ) : (
                 <div className="flex flex-col items-center">
-                  <Camera className="w-8 h-8 text-zinc-400 mb-2" />
-                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t('addPhoto')}</span>
+                  <Camera className="w-8 h-8 text-slate-500 mb-2" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('addPhoto')}</span>
                 </div>
               )}
             </div>

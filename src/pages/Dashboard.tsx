@@ -132,6 +132,37 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Citizen XP & Level Progress Card */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/50 p-6 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black text-xl shadow-lg shadow-amber-500/10">
+            L4
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-extrabold text-white">Civic Guardian Rank</h3>
+              <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">Level 4</span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">380 Karma Points earned • 120 XP needed to unlock Level 5 Master Status</p>
+          </div>
+        </div>
+
+        <div className="w-full md:w-80 space-y-2">
+          <div className="flex justify-between text-xs font-extrabold">
+            <span className="text-slate-400">Level 4 Progress</span>
+            <span className="text-emerald-400 font-mono">380 / 500 XP (76%)</span>
+          </div>
+          <div className="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden p-0.5">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "76%" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full shadow-[0_0_12px_#10b981]"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Demo Role Switcher */}
       <div className="bg-slate-900/60 p-8 rounded-3xl border border-slate-800 border-dashed backdrop-blur-xl">
         <div className="flex items-center justify-between mb-6">
