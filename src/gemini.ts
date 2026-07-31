@@ -1,8 +1,34 @@
-import { GoogleGenAI } from "@google/genai";
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const buildApiUrl = (path: string) => `${apiBaseUrl}${path}`;
 
-export const analyzeIssue = async (title: string, description: string) => {
+interface TriageResult {
+  category: string;
+  priority: string;
+  departmentId: string;
+  reasoning: string;
+}
+
+const fallbackTriageResult: TriageResult = {
+  category: 'other',
+  priority: 'Medium',
+  departmentId: 'municipal',
+  reasoning: 'AI triage was unavailable. Please review the issue manually.'
+};
+
+const isTriageResult = (value: unknown): value is TriageResult => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<TriageResult>;
+  return typeof candidate.category === 'string'
+    && typeof candidate.priority === 'string'
+    && typeof candidate.departmentId === 'string'
+    && typeof candidate.reasoning === 'string';
+};
+
+export const analyzeIssue = async (title: string, description: string): Promise<TriageResult> => {
   const prompt = `
     Analyze the following civic issue:
     Title: ${title}
@@ -40,31 +66,29 @@ export const analyzeIssue = async (title: string, description: string) => {
   `;
 
   try {
-    const response = await fetch('/api/ai/analyze', {
+    const response = await fetch(buildApiUrl('/api/ai/analyze'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, description, prompt })
     });
-    if (response.ok) {
-      return await response.json();
+
+    if (!response.ok) {
+      throw new Error(`AI analysis failed with status ${response.status}`);
     }
+
+    const data = await response.json();
+    if (!isTriageResult(data)) {
+      throw new Error('AI returned an invalid triage payload');
+    }
+
+    return data;
   } catch (error) {
-    console.warn("Groq failed, falling back to Gemini", error);
+    console.error('AI analysis unavailable:', error);
+    return fallbackTriageResult;
   }
-  
-  // Fallback to Gemini
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json"
-    }
-  });
-  
-  return JSON.parse(response.text);
 };
 
-export const agenticIntelligence = async (query: string, context: any[]) => {
+export const agenticIntelligence = async (query: string, context: unknown[]) => {
   const prompt = `
     You are the CIVIX Agentic Intelligence Engine. 
     Analyze the following city data and answer the user's query.
@@ -78,24 +102,20 @@ export const agenticIntelligence = async (query: string, context: any[]) => {
   `;
 
   try {
-    const response = await fetch('/api/ai/intelligence', {
+    const response = await fetch(buildApiUrl('/api/ai/intelligence'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, context, prompt })
     });
-    if (response.ok) {
-      const data = await response.json();
-      return data.text;
+
+    if (!response.ok) {
+      throw new Error(`AI intelligence failed with status ${response.status}`);
     }
+
+    const data = await response.json();
+    return typeof data?.text === 'string' ? data.text : 'AI intelligence is currently unavailable.';
   } catch (error) {
-    console.warn("Groq failed, falling back to Gemini", error);
+    console.error('AI intelligence unavailable:', error);
+    return 'AI intelligence is currently unavailable. Please try again later.';
   }
-  
-  // Fallback to Gemini
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt
-  });
-  
-  return response.text;
 };

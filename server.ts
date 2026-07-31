@@ -3,26 +3,67 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import Groq from "groq-sdk";
+import { GoogleGenAI } from "@google/genai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let groqClient: Groq | null = null;
+let geminiClient: GoogleGenAI | null = null;
 
 function getGroq() {
   if (!groqClient) {
     const key = process.env.GROQ_API_KEY;
     if (!key) {
-      throw new Error('GROQ_API_KEY environment variable is required');
+      return null;
     }
     groqClient = new Groq({ apiKey: key });
   }
   return groqClient;
 }
 
+function getGemini() {
+  if (!geminiClient) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      return null;
+    }
+    geminiClient = new GoogleGenAI({ apiKey: key });
+  }
+  return geminiClient;
+}
+
+async function generateText(prompt: string, { jsonMode = false }: { jsonMode?: boolean } = {}) {
+  const groq = getGroq();
+  if (groq) {
+    try {
+      const completion = await groq.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "llama-3.3-70b-versatile",
+        ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+      });
+      return completion.choices[0]?.message?.content || "";
+    } catch (error) {
+      console.warn("Groq failed, falling back to Gemini", error);
+    }
+  }
+
+  const gemini = getGemini();
+  if (gemini) {
+    const response = await gemini.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      ...(jsonMode ? { config: { responseMimeType: "application/json" } } : {}),
+    });
+    return response.text;
+  }
+
+  throw new Error("No AI provider is configured. Set GROQ_API_KEY or GEMINI_API_KEY.");
+}
+
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   app.use(express.json());
 
@@ -33,41 +74,22 @@ async function startServer() {
 
   app.post("/api/ai/analyze", async (req, res) => {
     try {
-      const { title, description, prompt } = req.body;
-      const groq = getGroq();
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-        response_format: { type: "json_object" },
-      });
-      res.json(JSON.parse(completion.choices[0]?.message?.content || "{}"));
+      const { prompt } = req.body;
+      const content = await generateText(prompt, { jsonMode: true });
+      res.json(JSON.parse(content || "{}"));
     } catch (error: any) {
-      console.error("Groq Analyze Error:", error);
+      console.error("AI Analyze Error:", error);
       res.status(500).json({ error: error.message });
     }
   });
 
   app.post("/api/ai/intelligence", async (req, res) => {
     try {
-      const { query, context, prompt } = req.body;
-      const groq = getGroq();
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-      });
-      res.json({ text: completion.choices[0]?.message?.content || "" });
+      const { prompt } = req.body;
+      const text = await generateText(prompt);
+      res.json({ text });
     } catch (error: any) {
-      console.error("Groq Intelligence Error:", error);
+      console.error("AI Intelligence Error:", error);
       res.status(500).json({ error: error.message });
     }
   });

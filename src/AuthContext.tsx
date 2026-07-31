@@ -1,26 +1,38 @@
-import { useState, useEffect, createContext, useContext } from 'react';
-import { auth, onAuthStateChanged, db, doc, getDoc, setDoc } from './firebase';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { auth, onAuthStateChanged, db, doc, getDoc } from './firebase';
 
-const AuthContext = createContext({
+interface AuthContextType {
+  user: any;
+  loading: boolean;
+  profile: any;
+  setProfile: React.Dispatch<React.SetStateAction<any>>;
+}
+
+const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  profile: null
+  profile: null,
+  setProfile: () => {}
 });
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setProfile(userDoc.data());
-        } else {
-          // Don't auto-create here, let the Login page handle it
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setProfile(userDoc.data());
+          } else {
+            setProfile(null);
+          }
+        } catch (err) {
+          console.error("Error fetching user profile from Firestore:", err);
           setProfile(null);
         }
       } else {
@@ -32,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, profile }}>
+    <AuthContext.Provider value={{ user, loading, profile, setProfile }}>
       {children}
     </AuthContext.Provider>
   );

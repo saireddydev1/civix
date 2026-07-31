@@ -10,11 +10,11 @@ View your app in AI Studio: https://ai.studio/apps/52cce98b-a14e-4aaf-909c-1d2b1
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+  `npm install`
+2. Copy [.env.example](.env.example) to `.env.local` and replace the placeholder values with your own keys.
+3. Set at least one AI provider key in `.env.local` (`GROQ_API_KEY` or `GEMINI_API_KEY`) for the AI features.
+4. Run the app:
+  `npm run dev`
