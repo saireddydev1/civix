@@ -205,10 +205,10 @@ export default function Feed() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{t('feedTitle')}</h1>
-          <p className="text-zinc-500 mt-1">{t('feedSubtitle')}</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">{t('feedTitle')}</h1>
+          <p className="text-slate-400 mt-1 text-sm">{t('feedSubtitle')}</p>
         </div>
-        <div className="flex gap-2 p-1 bg-zinc-100 rounded-lg self-start">
+        <div className="flex gap-1.5 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl self-start">
           {[
             { id: 'all', label: t('feedFilterAll') },
             { id: 'open', label: t('feedFilterOpen') },
@@ -218,8 +218,8 @@ export default function Feed() {
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                filter === f.id ? 'bg-white text-emerald-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                filter === f.id ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
               }`}
             >
               {f.label}
@@ -235,82 +235,82 @@ export default function Feed() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             key={issue.id}
-            className="bg-white border border-zinc-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow group"
+            className="bg-slate-900/80 border border-slate-800/80 rounded-3xl overflow-hidden hover:border-emerald-500/40 hover:shadow-2xl transition-all group backdrop-blur-xl"
           >
             {issue.photoUrl && (
-              <div className="aspect-video w-full overflow-hidden bg-zinc-100">
+              <div className="aspect-video w-full overflow-hidden bg-slate-950 relative">
                 <img 
                   src={issue.photoUrl} 
                   alt={issue.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                   referrerPolicy="no-referrer"
                 />
               </div>
             )}
-            <div className="p-5 space-y-4">
+            <div className="p-6 space-y-4">
               <div className="flex justify-between items-start">
-                <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                  issue.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' :
-                  issue.status === 'in-progress' ? 'bg-amber-100 text-amber-700' :
-                  'bg-zinc-100 text-zinc-700'
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                  issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                  issue.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                  'bg-slate-800 text-slate-300 border border-slate-700'
                 }`}>
                   {issue.status}
                 </span>
-                <span className="text-xs text-zinc-400 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+                <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
                   {issue.createdAt ? formatDistanceToNow(issue.createdAt.toDate()) + ' ago' : 'Just now'}
                 </span>
               </div>
 
               <div className="relative">
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="text-lg font-semibold text-zinc-900 leading-tight flex-1">{issue.title}</h3>
+                  <h3 className="text-lg font-bold text-white leading-snug flex-1">{issue.title}</h3>
                   {user && issue.reporterUid === user.uid && issue.status === 'open' && (
                     <button 
                       onClick={() => {
                         setEditingIssue(issue);
                         setEditFormData({ title: issue.title, description: issue.description });
                       }}
-                      className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-400 hover:text-emerald-600 transition-colors"
+                      className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-emerald-400 transition-colors"
                       title="Edit Issue"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-zinc-500 mt-2 line-clamp-2">{issue.description}</p>
+                <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">{issue.description}</p>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <MapPin className="w-3 h-3" />
-                <span>{issue.location?.address || 'Uppal, Hyderabad'}</span>
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="truncate">{issue.location?.address || 'Uppal, Hyderabad'}</span>
               </div>
 
-              <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+              <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => handleLike(issue.id)}
                     className={`flex items-center gap-1.5 transition-colors ${
-                      userLikes[issue.id] ? 'text-emerald-600' : 'text-zinc-500 hover:text-emerald-600'
+                      userLikes[issue.id] ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-emerald-400'
                     }`}
                   >
-                    <ThumbsUp className={`w-4 h-4 ${userLikes[issue.id] ? 'fill-emerald-600' : ''}`} />
-                    <span className="text-xs font-medium">{issue.likesCount || 0}</span>
+                    <ThumbsUp className={`w-4 h-4 ${userLikes[issue.id] ? 'fill-emerald-400' : ''}`} />
+                    <span className="text-xs">{issue.likesCount || 0}</span>
                   </button>
                   <button 
                     onClick={() => setActiveComments(issue.id)}
-                    className="flex items-center gap-1.5 text-zinc-500 hover:text-emerald-600 transition-colors"
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 transition-colors"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    <span className="text-xs font-medium">{issue.commentsCount || 0}</span>
+                    <span className="text-xs">{issue.commentsCount || 0}</span>
                   </button>
                 </div>
-                <div className="w-6 h-6 rounded-full bg-zinc-200 border border-white overflow-hidden">
+                <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 overflow-hidden">
                   {issue.reporterPhotoUrl ? (
                     <img src={issue.reporterPhotoUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-zinc-100">
-                      <User className="w-3 h-3 text-zinc-400" />
+                    <div className="w-full h-full flex items-center justify-center bg-slate-800">
+                      <User className="w-3 h-3 text-slate-400" />
                     </div>
                   )}
                 </div>

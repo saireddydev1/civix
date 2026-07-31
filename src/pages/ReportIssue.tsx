@@ -189,34 +189,36 @@ export default function ReportIssue() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto pb-20">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{t('reportIssue')}</h1>
-        <p className="text-zinc-500 mt-1">Provide details about the civic problem. AI will help route it.</p>
+    <div className="max-w-4xl mx-auto space-y-8 pb-20">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">{t('reportIssue')}</h1>
+          <p className="text-slate-400 text-sm mt-1">Submit civic complaints directly to municipal governance for automated AI routing.</p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-8 text-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-zinc-700">{t('issueTitle')}</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('issueTitle')}</label>
               <input
                 required
                 type="text"
                 placeholder={t('issueTitlePlaceholder')}
-                className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-white placeholder:text-slate-500"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-zinc-700">{t('description')}</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('description')}</label>
               <textarea
                 required
                 rows={4}
                 placeholder={t('issueDescriptionPlaceholder')}
-                className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
+                className="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none text-white placeholder:text-slate-500"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
@@ -227,28 +229,28 @@ export default function ReportIssue() {
                 type="button"
                 disabled={analyzing || !formData.title || !formData.description}
                 onClick={handleAnalyze}
-                className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-lg hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2.5 rounded-xl hover:bg-emerald-500/20 transition-all disabled:opacity-50"
               >
-                {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-400" />}
                 {t('aiTriage')}
               </button>
               {aiAnalysis && (
-                <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <div className="flex items-center gap-2 text-emerald-700 font-bold text-[10px] uppercase tracking-wider mb-1">
+                <div className="mt-2 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex-1">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-1">
                     <Sparkles className="w-3 h-3" />
-                    AI Insights
+                    AI Auto-Categorized
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[10px]">
                     <div>
-                      <span className="text-zinc-400 block">Category</span>
-                      <span className="text-zinc-900 font-bold capitalize">{aiAnalysis.category}</span>
+                      <span className="text-slate-400 block">Category</span>
+                      <span className="text-white font-bold capitalize">{aiAnalysis.category}</span>
                     </div>
                     <div>
-                      <span className="text-zinc-400 block">Priority</span>
+                      <span className="text-slate-400 block">Priority</span>
                       <span className={`font-bold ${
-                        aiAnalysis.priority === 'Critical' ? 'text-red-600' :
-                        aiAnalysis.priority === 'High' ? 'text-amber-600' :
-                        'text-emerald-600'
+                        aiAnalysis.priority === 'Critical' ? 'text-red-400' :
+                        aiAnalysis.priority === 'High' ? 'text-amber-400' :
+                        'text-emerald-400'
                       }`}>{aiAnalysis.priority}</span>
                     </div>
                   </div>
@@ -257,28 +259,28 @@ export default function ReportIssue() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-zinc-700">Category</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Category</label>
               <div className="grid grid-cols-2 gap-2">
                 {ISSUE_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setFormData({ ...formData, category: cat.id })}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all text-left ${
+                    className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border transition-all text-left ${
                       formData.category === cat.id 
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600' 
-                      : 'border-zinc-200 hover:border-zinc-300 text-zinc-600'
+                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 font-bold' 
+                      : 'border-slate-800 bg-slate-950/60 hover:border-slate-700 text-slate-300'
                     }`}
                   >
-                    <span className="text-xs font-medium">{cat.name}</span>
-                    {formData.category === cat.id && <CheckCircle2 className="w-3 h-3 ml-auto" />}
+                    <span className="text-xs">{cat.name}</span>
+                    {formData.category === cat.id && <CheckCircle2 className="w-3.5 h-3.5 ml-auto text-emerald-400" />}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-zinc-700">{t('selectDepartment')}</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('selectDepartment')}</label>
               <div className="grid grid-cols-1 gap-2">
                 {DEPARTMENTS.map((dept) => (
                   <button
@@ -287,15 +289,15 @@ export default function ReportIssue() {
                     onClick={() => setFormData({ ...formData, departmentId: dept.id })}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
                       formData.departmentId === dept.id 
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600' 
-                      : 'border-zinc-200 hover:border-zinc-300 text-zinc-600'
+                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 font-bold' 
+                      : 'border-slate-800 bg-slate-950/60 hover:border-slate-700 text-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       {getDeptIcon(dept.id)}
-                      <span className="text-sm font-medium">{dept.name}</span>
+                      <span className="text-xs">{dept.name}</span>
                     </div>
-                    {formData.departmentId === dept.id && <CheckCircle2 className="w-4 h-4" />}
+                    {formData.departmentId === dept.id && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                   </button>
                 ))}
               </div>

@@ -90,8 +90,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-sm flex flex-col md:flex-row items-center gap-8">
-        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-50">
+      <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row items-center gap-8 text-slate-100">
+        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/20 shadow-xl">
           <img 
             src={profile?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.displayName || 'User')}`} 
             className="w-full h-full object-cover" 
@@ -100,12 +100,12 @@ export default function Dashboard() {
           />
         </div>
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-3xl font-bold text-zinc-900">{profile?.displayName}</h1>
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-zinc-500">
-            <span className="flex items-center gap-1.5 text-sm">
-              <Mail className="w-4 h-4" /> {profile?.email}
+          <h1 className="text-3xl font-extrabold text-white">{profile?.displayName}</h1>
+          <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-slate-400">
+            <span className="flex items-center gap-1.5 text-xs font-semibold">
+              <Mail className="w-4 h-4 text-emerald-400" /> {profile?.email}
             </span>
-            <span className="flex items-center gap-1.5 text-sm capitalize">
+            <span className="flex items-center gap-1.5 text-xs font-semibold capitalize text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
               {getDeptIcon(profile?.departmentId)} 
               {profile?.role} {profile?.departmentId ? `(${profile.departmentId})` : ''}
             </span>
@@ -115,38 +115,38 @@ export default function Dashboard() {
           <button
             onClick={handleSeedData}
             disabled={seeding}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-3 rounded-2xl text-xs font-extrabold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
             title="Seed sample complaints for presentation"
           >
-            {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-slate-950" />}
             <span>Seed Demo Issues</span>
           </button>
-          <div className="text-center px-5 py-3 bg-zinc-50 rounded-2xl">
-            <div className="text-xl font-bold text-zinc-900">{myIssues.length}</div>
-            <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Reports</div>
+          <div className="text-center px-5 py-3 bg-slate-950/60 border border-slate-800 rounded-2xl">
+            <div className="text-xl font-extrabold text-white">{myIssues.length}</div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reports</div>
           </div>
-          <div className="text-center px-5 py-3 bg-emerald-50 rounded-2xl">
-            <div className="text-xl font-bold text-emerald-600">{myIssues.filter(i => i.status === 'resolved').length}</div>
-            <div className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Resolved</div>
+          <div className="text-center px-5 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+            <div className="text-xl font-extrabold text-emerald-400">{myIssues.filter(i => i.status === 'resolved').length}</div>
+            <div className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-wider">Resolved</div>
           </div>
         </div>
       </div>
 
       {/* Demo Role Switcher */}
-      <div className="bg-zinc-50 p-8 rounded-3xl border border-zinc-200 border-dashed">
+      <div className="bg-slate-900/60 p-8 rounded-3xl border border-slate-800 border-dashed backdrop-blur-xl">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-bold text-zinc-900">Demo: Switch Login Role</h3>
-            <p className="text-sm text-zinc-500">Test the platform as different department officials.</p>
+            <h3 className="text-lg font-bold text-white">Demo: Switch Active Role</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Test the platform as different department officials.</p>
           </div>
-          {updating && <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />}
+          {updating && <RefreshCw className="w-5 h-5 animate-spin text-emerald-400" />}
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <button
             onClick={() => handleRoleSwitch('citizen')}
-            className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
-              profile?.role === 'citizen' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300'
+            className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border ${
+              profile?.role === 'citizen' ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-slate-950/60 text-slate-300 border-slate-800 hover:border-slate-700'
             }`}
           >
             Citizen
@@ -155,8 +155,8 @@ export default function Dashboard() {
             <button
               key={dept.id}
               onClick={() => handleRoleSwitch('official', dept.id)}
-              className={`px-4 py-3 rounded-xl text-xs font-bold transition-all border flex flex-col items-center gap-2 ${
-                profile?.departmentId === dept.id ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300'
+              className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center gap-2 ${
+                profile?.departmentId === dept.id ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-slate-950/60 text-slate-300 border-slate-800 hover:border-slate-700'
               }`}
             >
               {getDeptIcon(dept.id)}
@@ -167,34 +167,34 @@ export default function Dashboard() {
       </div>
 
       <div className="space-y-6">
-        <h2 className="text-xl font-bold text-zinc-900">My Reported Issues</h2>
-        <div className="bg-white rounded-3xl border border-zinc-200 overflow-hidden">
+        <h2 className="text-xl font-bold text-white">My Reported Issues</h2>
+        <div className="bg-slate-900/80 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl backdrop-blur-xl">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-100">
-                <th className="px-6 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Issue</th>
-                <th className="px-6 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider text-right">Actions</th>
+              <tr className="bg-slate-950/80 border-b border-slate-800">
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Issue</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-slate-800/60 text-slate-200">
               {myIssues.map((issue) => (
-                <tr key={issue.id} className="hover:bg-zinc-50 transition-colors">
+                <tr key={issue.id} className="hover:bg-slate-800/40 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-zinc-900">{issue.title}</div>
-                    <div className="text-xs text-zinc-500">{issue.departmentId}</div>
+                    <div className="font-bold text-white text-sm">{issue.title}</div>
+                    <div className="text-xs text-slate-400">{issue.departmentId}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                      issue.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' :
-                      issue.status === 'in-progress' ? 'bg-amber-100 text-amber-700' :
-                      'bg-zinc-100 text-zinc-700'
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                      issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                      issue.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                      'bg-slate-800 text-slate-300 border border-slate-700'
                     }`}>
                       {issue.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-zinc-500">
+                  <td className="px-6 py-4 text-xs text-slate-400">
                     {issue.createdAt ? format(issue.createdAt.toDate(), 'MMM d, yyyy') : '...'}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -204,7 +204,7 @@ export default function Dashboard() {
                           setEditingIssue(issue);
                           setEditFormData({ title: issue.title, description: issue.description });
                         }}
-                        className="p-2 hover:bg-emerald-50 text-zinc-400 hover:text-emerald-600 rounded-lg transition-all"
+                        className="p-2 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 rounded-lg transition-all"
                         title="Edit Issue"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -215,8 +215,8 @@ export default function Dashboard() {
               ))}
               {myIssues.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-400">
-                    You haven't reported any issues yet.
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500 text-xs">
+                    You haven't reported any issues yet. Click "Seed Demo Issues" above to populate sample reports.
                   </td>
                 </tr>
               )}
