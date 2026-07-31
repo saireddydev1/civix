@@ -13,7 +13,7 @@ let geminiClient: GoogleGenAI | null = null;
 
 function getGroq() {
   if (!groqClient) {
-    const key = process.env.GROQ_API_KEY || "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";
+    const key = process.env.GROQ_API_KEY || "";
     if (!key) {
       return null;
     }
