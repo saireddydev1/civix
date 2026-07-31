@@ -1,10 +1,9 @@
 {
-  "projectId": "gen-lang-client-0346329757",
-  "appId": "1:307561762031:web:e3d8d4cf388b4935ec9f1a",
-  "apiKey": "AIzaSyCSrGvr0j-F10bE6pYXdBaKChCA5tSA3M8",
-  "authDomain": "gen-lang-client-0346329757.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-52cce98b-a14e-4aaf-909c-1d2b126aceb7",
-  "storageBucket": "gen-lang-client-0346329757.firebasestorage.app",
-  "messagingSenderId": "307561762031",
+  "projectId": "civix-23d51",
+  "appId": "1:819833016820:web:5b407e73ddd1d758a469a1",
+  "apiKey": "AIzaSyAHmYuSs8V9A__VKmPwGb3i10785nQ74nE",
+  "authDomain": "civix-23d51.firebaseapp.com",
+  "storageBucket": "civix-23d51.firebasestorage.app",
+  "messagingSenderId": "819833016820",
   "measurementId": ""
 }
