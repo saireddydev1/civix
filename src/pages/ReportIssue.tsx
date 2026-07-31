@@ -19,6 +19,131 @@ const defaultCenter = {
   lng: 78.4867 // Hyderabad
 };
 
+let leafletPickerLoadPromise: Promise<void> | null = null;
+
+const loadLeafletPicker = (): Promise<void> => {
+  if (leafletPickerLoadPromise) return leafletPickerLoadPromise;
+
+  leafletPickerLoadPromise = new Promise((resolve) => {
+    if ((window as any).L) {
+      resolve();
+      return;
+    }
+
+    if (!document.getElementById('leaflet-css-picker')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css-picker';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.async = true;
+    script.onload = () => resolve();
+    document.body.appendChild(script);
+  });
+
+  return leafletPickerLoadPromise;
+};
+
+const LeafletPickerMap = ({
+  lat,
+  lng,
+  onSelectLocation
+}: {
+  lat: number;
+  lng: number;
+  onSelectLocation: (lat: number, lng: number) => void;
+}) => {
+  const callbackRef = useRef(onSelectLocation);
+  useEffect(() => {
+    callbackRef.current = onSelectLocation;
+  }, [onSelectLocation]);
+
+  useEffect(() => {
+    let mapInstance: any = null;
+    let isCancelled = false;
+
+    loadLeafletPicker().then(() => {
+      if (isCancelled) return;
+
+      const L = (window as any).L;
+      if (!L) return;
+
+      const container = document.getElementById('leaflet-picker-container');
+      if (!container) return;
+
+      if ((container as any)._leaflet_id) return;
+
+      container.innerHTML = '';
+
+      const initialLat = lat || 17.3850;
+      const initialLng = lng || 78.4867;
+
+      mapInstance = L.map('leaflet-picker-container', {
+        zoomControl: true,
+        attributionControl: false
+      }).setView([initialLat, initialLng], 14);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(mapInstance);
+
+      const markerHtml = `
+        <div style="
+          width: 28px;
+          height: 28px;
+          background-color: #10b981;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 0 12px rgba(16,185,129,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div style="width: 8px; height: 8px; background-color: white; border-radius: 50%;"></div>
+        </div>
+      `;
+
+      const customIcon = L.divIcon({
+        html: markerHtml,
+        className: 'custom-picker-pin',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
+      const marker = L.marker([initialLat, initialLng], { icon: customIcon, draggable: true }).addTo(mapInstance);
+
+      marker.on('dragend', (e: any) => {
+        const position = e.target.getLatLng();
+        callbackRef.current(position.lat, position.lng);
+      });
+
+      mapInstance.on('click', (e: any) => {
+        const { lat: clickLat, lng: clickLng } = e.latlng;
+        marker.setLatLng([clickLat, clickLng]);
+        callbackRef.current(clickLat, clickLng);
+      });
+    });
+
+    return () => {
+      isCancelled = true;
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      id="leaflet-picker-container"
+      className="w-full h-[320px] bg-slate-950 border-b border-slate-800"
+    />
+  );
+};
+
 export default function ReportIssue() {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -35,6 +160,7 @@ export default function ReportIssue() {
   const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
   const isGroqKey = mapsKey.startsWith('gsk_');
   const isInvalidFormat = mapsKey && !mapsKey.startsWith('AIza');
+  const useMockMap = !mapsKey || isGroqKey || isInvalidFormat;
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -99,27 +225,34 @@ export default function ReportIssue() {
   }, []);
 
   const reverseGeocode = useCallback((lat: number, lng: number) => {
-    if (!window.google) {
-      setFormData(prev => ({
-        ...prev,
-        location: { ...prev.location, lat, lng, address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}` }
-      }));
-      return;
+    setFormData(prev => ({
+      ...prev,
+      location: { ...prev.location, lat, lng, address: `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})` }
+    }));
+
+    if (window.google?.maps?.Geocoder) {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+          setFormData(prev => ({
+            ...prev,
+            location: { ...prev.location, lat, lng, address: results[0].formatted_address }
+          }));
+        }
+      });
+    } else {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.display_name) {
+            setFormData(prev => ({
+              ...prev,
+              location: { ...prev.location, lat, lng, address: data.display_name }
+            }));
+          }
+        })
+        .catch(() => {});
     }
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        setFormData(prev => ({
-          ...prev,
-          location: { ...prev.location, lat, lng, address: results[0].formatted_address }
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          location: { ...prev.location, lat, lng, address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}` }
-        }));
-      }
-    });
   }, []);
 
   const onMapClick = useCallback((e: any) => {
@@ -415,7 +548,7 @@ export default function ReportIssue() {
             {/* Video Upload */}
             <div 
               onClick={() => videoInputRef.current?.click()}
-              className="aspect-video bg-zinc-50 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 relative overflow-hidden cursor-pointer hover:bg-zinc-100 transition-colors group"
+              className="aspect-video bg-slate-950/80 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-slate-800 relative overflow-hidden cursor-pointer hover:border-emerald-500/50 transition-colors group"
             >
               <input 
                 type="file" 
@@ -433,8 +566,8 @@ export default function ReportIssue() {
                 </>
               ) : (
                 <div className="flex flex-col items-center">
-                  <Video className="w-8 h-8 text-zinc-400 mb-2" />
-                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{t('addVideo')}</span>
+                  <Video className="w-8 h-8 text-slate-500 mb-2" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('addVideo')}</span>
                 </div>
               )}
             </div>
@@ -442,102 +575,69 @@ export default function ReportIssue() {
             {/* Location Picker */}
             <div 
               onClick={() => setShowMap(true)}
-              className="aspect-video bg-zinc-50 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 p-4 cursor-pointer hover:bg-zinc-100 transition-colors"
+              className="aspect-video bg-slate-950/80 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-slate-800 p-4 cursor-pointer hover:border-emerald-500/50 transition-colors"
             >
-              <MapPin className="w-8 h-8 text-emerald-500 mb-2" />
+              <MapPin className="w-8 h-8 text-emerald-400 mb-2" />
               <div className="text-center">
-                <span className="text-xs font-bold text-zinc-900 block uppercase tracking-widest">{t('setOnMap')}</span>
-                <p className="mt-1 text-[10px] text-zinc-500 line-clamp-1">Click to adjust pin</p>
+                <span className="text-xs font-bold text-white block uppercase tracking-widest">{t('setOnMap')}</span>
+                <p className="mt-1 text-[10px] text-slate-400 line-clamp-1">Click to adjust pin</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-zinc-700">{t('location')}</label>
+            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('location')}</label>
             <div className="relative">
               <input
                 required
                 type="text"
                 placeholder={t('addressPlaceholder')}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-white placeholder:text-slate-500"
                 value={formData.location.address}
                 onChange={(e) => setFormData({ 
                   ...formData, 
                   location: { ...formData.location, address: e.target.value } 
                 })}
               />
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
             </div>
-            <p className="text-[10px] text-zinc-400 italic">Tip: Use the map picker above for higher accuracy.</p>
+            <p className="text-[10px] text-slate-400 italic">Tip: Use the map picker above for higher accuracy.</p>
           </div>
         </div>
 
         {/* Map Modal */}
         <AnimatePresence>
           {showMap && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl"
+                className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl"
               >
-                <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
-                  <h3 className="text-xl font-bold">Adjust Location Pin</h3>
-                  <button 
-                    type="button"
-                    onClick={handleLocateMe}
-                    className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-emerald-600"
-                    title="Locate Me"
-                  >
-                    <MapPin className="w-6 h-6" />
-                  </button>
-                  <button onClick={() => setShowMap(false)} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
-                    <X className="w-6 h-6" />
-                  </button>
+                <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900 text-white">
+                  <h3 className="text-xl font-extrabold">Adjust Location Pin</h3>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      type="button"
+                      onClick={handleLocateMe}
+                      className="p-2 hover:bg-slate-800 rounded-full transition-colors text-emerald-400"
+                      title="Locate Me"
+                    >
+                      <MapPin className="w-6 h-6" />
+                    </button>
+                    <button onClick={() => setShowMap(false)} className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400">
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
                 </div>
-                  <div className="p-0">
-                    {!mapsKey ? (
-                      <div className="h-[300px] flex flex-col items-center justify-center bg-zinc-50 p-8 text-center">
-                        <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
-                        <h4 className="font-bold text-zinc-900">
-                          Maps API Key Required
-                        </h4>
-                        <p className="text-sm text-zinc-500 mt-2 max-w-xs">
-                          Please add VITE_GOOGLE_MAPS_API_KEY to your AI Studio Secrets to enable the interactive map.
-                        </p>
-                        <a 
-                          href="https://console.cloud.google.com/google/maps-apis/credentials" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="mt-4 text-xs text-emerald-600 font-bold underline"
-                        >
-                          Get a Google Maps API Key
-                        </a>
-                      </div>
-                    ) : isGroqKey ? (
-                    <div className="h-[300px] flex flex-col items-center justify-center bg-zinc-50 p-8 text-center">
-                      <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                      <h4 className="font-bold text-zinc-900">Wrong Key Type Detected</h4>
-                      <div className="text-sm text-zinc-500 mt-2 max-w-xs space-y-2">
-                        <p className="text-red-600 font-medium">
-                          You are using a Groq AI key (starts with gsk_) for Google Maps.
-                        </p>
-                        <p>
-                          Google Maps requires a key starting with <strong>AIza...</strong> from the Google Cloud Console.
-                        </p>
-                      </div>
-                    </div>
-                  ) : (loadError || isInvalidFormat) ? (
-                    <div className="h-[300px] flex flex-col items-center justify-center bg-zinc-50 p-8 text-center">
-                      <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                      <h4 className="font-bold text-zinc-900">Invalid Maps Key</h4>
-                      <div className="text-sm text-zinc-500 mt-2 max-w-xs space-y-2">
-                        <p>
-                          The provided API key is invalid or has the wrong format.
-                        </p>
-                      </div>
-                    </div>
+                <div className="p-0">
+                  {useMockMap ? (
+                    <LeafletPickerMap
+                      lat={formData.location.lat}
+                      lng={formData.location.lng}
+                      onSelectLocation={(lat, lng) => reverseGeocode(lat, lng)}
+                    />
                   ) : isLoaded ? (
                     <GoogleMap
                       mapContainerStyle={mapContainerStyle}
@@ -552,19 +652,19 @@ export default function ReportIssue() {
                       />
                     </GoogleMap>
                   ) : (
-                    <div className="h-[300px] flex items-center justify-center bg-zinc-50">
-                      <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                    <div className="h-[300px] flex items-center justify-center bg-slate-950">
+                      <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
                     </div>
                   )}
                 </div>
-                <div className="p-6 bg-zinc-50 flex items-center justify-between">
-                  <div className="text-sm text-zinc-600">
-                    <span className="font-bold block text-zinc-900">Selected Coordinates</span>
+                <div className="p-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-slate-100">
+                  <div className="text-sm text-slate-400">
+                    <span className="font-bold block text-white">Selected Coordinates</span>
                     {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
                   </div>
                   <button 
                     onClick={() => setShowMap(false)}
-                    className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all"
+                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-8 py-3 rounded-xl font-extrabold transition-all shadow-lg shadow-emerald-500/20"
                   >
                     Confirm Location
                   </button>
@@ -577,7 +677,7 @@ export default function ReportIssue() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-zinc-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-zinc-200 disabled:opacity-70"
+          className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-4 rounded-2xl font-extrabold text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-70"
         >
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           {t('submit')}
