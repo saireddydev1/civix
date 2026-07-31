@@ -1,13 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import { auth, signOut, db, doc, updateDoc } from './firebase';
 import { DEPARTMENTS } from './constants';
-import { ShieldCheck, LogOut, Menu, X, Plus, BarChart3, User as UserIcon, Loader2, Languages, Map as MapIcon, ChevronDown, Building2, User, RefreshCw } from 'lucide-react';
+import { ShieldCheck, LogOut, Menu, X, Plus, BarChart3, User as UserIcon, Loader2, Languages, Map as MapIcon, ChevronDown, Building2, User, RefreshCw, Trophy, Home } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-// Pages
+// Pages & Components
 import Feed from './pages/Feed';
 import ReportIssue from './pages/ReportIssue';
 import Dashboard from './pages/Dashboard';
@@ -15,6 +15,9 @@ import Analytics from './pages/Analytics';
 import DepartmentDashboard from './pages/DepartmentDashboard';
 import CityMap from './pages/CityMap';
 import Login from './pages/Login';
+import LandingPage from './pages/LandingPage';
+import Leaderboard from './pages/Leaderboard';
+import AICopilot from './components/AICopilot';
 
 const Navbar = () => {
   const { user, profile, setProfile } = useAuth();
@@ -46,11 +49,11 @@ const Navbar = () => {
   if (!user || !profile) return null;
 
   return (
-    <nav className="bg-white border-b border-zinc-200 sticky top-0 z-50">
+    <nav className="bg-white border-b border-zinc-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/feed" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <ShieldCheck className="text-white w-5 h-5" />
               </div>
@@ -134,8 +137,11 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-zinc-600 hover:text-emerald-600 transition-colors">{t('feed')}</Link>
+          <div className="hidden md:flex items-center space-x-5 text-sm font-medium">
+            <Link to="/welcome" className="flex items-center gap-1 text-zinc-600 hover:text-emerald-600 transition-colors">
+              <Home className="w-4 h-4" /> Home
+            </Link>
+            <Link to="/feed" className="text-zinc-600 hover:text-emerald-600 transition-colors">{t('feed')}</Link>
             <Link to="/report" className="flex items-center gap-1 text-zinc-600 hover:text-emerald-600 transition-colors">
               <Plus className="w-4 h-4" /> {t('reportIssue')}
             </Link>
@@ -144,6 +150,9 @@ const Navbar = () => {
             </Link>
             <Link to="/analytics" className="flex items-center gap-1 text-zinc-600 hover:text-emerald-600 transition-colors">
               <BarChart3 className="w-4 h-4" /> {t('analytics')}
+            </Link>
+            <Link to="/leaderboard" className="flex items-center gap-1 text-zinc-600 hover:text-emerald-600 transition-colors">
+              <Trophy className="w-4 h-4 text-amber-500" /> Leaderboard
             </Link>
             {profile?.role === 'official' && (
               <Link to="/department" className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors">
@@ -165,7 +174,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-32 bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden"
+                    className="absolute right-0 mt-2 w-32 bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden z-50"
                   >
                     {[
                       { code: 'en', label: 'English' },
@@ -215,10 +224,12 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-white border-t border-zinc-100 px-4 py-4 space-y-4"
           >
-            <Link to="/" onClick={() => setIsOpen(false)} className="block text-zinc-600">{t('feed')}</Link>
+            <Link to="/welcome" onClick={() => setIsOpen(false)} className="block text-zinc-600">Home Landing</Link>
+            <Link to="/feed" onClick={() => setIsOpen(false)} className="block text-zinc-600">{t('feed')}</Link>
             <Link to="/report" onClick={() => setIsOpen(false)} className="block text-zinc-600">{t('reportIssue')}</Link>
             <Link to="/map" onClick={() => setIsOpen(false)} className="block text-zinc-600">{t('map')}</Link>
             <Link to="/analytics" onClick={() => setIsOpen(false)} className="block text-zinc-600">{t('analytics')}</Link>
+            <Link to="/leaderboard" onClick={() => setIsOpen(false)} className="block text-zinc-600">Leaderboard</Link>
             <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-zinc-600">{t('profile')}</Link>
             <button onClick={handleLogout} className="block w-full text-left text-red-500">Sign Out</button>
           </motion.div>
@@ -230,27 +241,42 @@ const Navbar = () => {
 
 const AppContent = () => {
   const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>;
 
-  if (!user || !profile) {
-    return <Login />;
-  }
+  const isPublicLanding = location.pathname === '/welcome' || location.pathname === '/landing';
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans text-zinc-900">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {user && profile && !isPublicLanding && <Navbar />}
+      <main className={isPublicLanding ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
         <Routes>
-          <Route path="/" element={<Feed />} />
-          <Route path="/report" element={<ReportIssue />} />
-          <Route path="/map" element={<CityMap />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/department" element={<DepartmentDashboard />} />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/welcome" element={<LandingPage />} />
+          <Route path="/landing" element={<LandingPage />} />
+          {!user || !profile ? (
+            <>
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<LandingPage />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<Feed />} />
+              <Route path="/feed" element={<Feed />} />
+              <Route path="/report" element={<ReportIssue />} />
+              <Route path="/map" element={<CityMap />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/department" element={<DepartmentDashboard />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </>
+          )}
         </Routes>
       </main>
+
+      {/* Global AI Copilot Assistant */}
+      <AICopilot />
     </div>
   );
 };
@@ -266,3 +292,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+
