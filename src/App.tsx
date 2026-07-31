@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
 import { LanguageProvider, useLanguage } from './LanguageContext';
-import { auth, signOut } from './firebase';
-import { ShieldCheck, LogOut, Menu, X, Plus, BarChart3, User as UserIcon, Loader2, Languages, Map as MapIcon } from 'lucide-react';
+import { auth, signOut, db, doc, updateDoc } from './firebase';
+import { DEPARTMENTS } from './constants';
+import { ShieldCheck, LogOut, Menu, X, Plus, BarChart3, User as UserIcon, Loader2, Languages, Map as MapIcon, ChevronDown, Building2, User, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -16,12 +17,31 @@ import CityMap from './pages/CityMap';
 import Login from './pages/Login';
 
 const Navbar = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, setProfile } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState(false);
 
   const handleLogout = () => signOut(auth);
+
+  const handleRoleChange = async (role: string, deptId?: string) => {
+    if (!user) return;
+    setUpdatingRole(true);
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        role,
+        departmentId: deptId || null
+      });
+      setProfile((prev: any) => ({ ...prev, role, departmentId: deptId || null }));
+      setShowRoleMenu(false);
+    } catch (err) {
+      console.error('Failed to change role:', err);
+    } finally {
+      setUpdatingRole(false);
+    }
+  };
 
   if (!user || !profile) return null;
 
@@ -29,13 +49,88 @@ const Navbar = () => {
     <nav className="bg-white border-b border-zinc-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <ShieldCheck className="text-white w-5 h-5" />
               </div>
               <span className="text-xl font-bold tracking-tight text-zinc-900">{t('appName')}</span>
             </Link>
+
+            {/* Quick Role Switcher Badge */}
+            <div className="relative">
+              <button
+                onClick={() => setShowRoleMenu(!showRoleMenu)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold hover:bg-emerald-100 transition-colors"
+                title="Switch Active Portal / Role"
+              >
+                {profile?.role === 'official' ? (
+                  <>
+                    <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="capitalize">{profile?.departmentId || 'Official'} Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <User className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Citizen Portal</span>
+                  </>
+                )}
+                {updatingRole ? (
+                  <RefreshCw className="w-3 h-3 animate-spin text-emerald-600 ml-0.5" />
+                ) : (
+                  <ChevronDown className="w-3 h-3 text-emerald-600" />
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showRoleMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute left-0 mt-2 w-64 bg-white border border-zinc-200 rounded-2xl shadow-2xl overflow-hidden p-2 z-50"
+                  >
+                    <div className="px-3 py-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-100">
+                      Switch Active Portal Mode
+                    </div>
+                    
+                    <button
+                      onClick={() => handleRoleChange('citizen')}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all mt-1 ${
+                        profile?.role === 'citizen' ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-50 text-zinc-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        <span>Citizen Portal</span>
+                      </div>
+                      {profile?.role === 'citizen' && <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">Active</span>}
+                    </button>
+
+                    <div className="px-3 py-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-t border-zinc-100 mt-2">
+                      Department Access
+                    </div>
+
+                    <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                      {DEPARTMENTS.map(dept => (
+                        <button
+                          key={dept.id}
+                          onClick={() => handleRoleChange('official', dept.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                            profile?.role === 'official' && profile?.departmentId === dept.id ? 'bg-emerald-600 text-white font-bold' : 'hover:bg-emerald-50 text-zinc-700'
+                          }`}
+                        >
+                          <span className="truncate">{dept.name}</span>
+                          {profile?.role === 'official' && profile?.departmentId === dept.id && (
+                            <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full shrink-0">Active</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Desktop Nav */}
@@ -51,7 +146,9 @@ const Navbar = () => {
               <BarChart3 className="w-4 h-4" /> {t('analytics')}
             </Link>
             {profile?.role === 'official' && (
-              <Link to="/department" className="text-zinc-600 hover:text-emerald-600 transition-colors">Dept</Link>
+              <Link to="/department" className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors">
+                Dept Dashboard
+              </Link>
             )}
             
             <div className="relative">

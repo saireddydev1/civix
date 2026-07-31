@@ -1,51 +1,43 @@
 import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  updateProfile 
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
-import { 
-  getFirestore, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  addDoc, 
-  serverTimestamp, 
-  getDocFromServer, 
-  increment, 
-  deleteDoc, 
-  writeBatch 
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+  increment,
+  deleteDoc,
+  writeBatch
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
+const config = firebaseConfig as typeof firebaseConfig & { firestoreDatabaseId?: string };
+
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = firebaseConfig.firestoreDatabaseId 
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+export const db = config.firestoreDatabaseId
+  ? getFirestore(app, config.firestoreDatabaseId)
   : getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Test connection silently
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn("Firebase client appears to be offline or initializing.");
-    }
-  }
-}
-testConnection();
+// Firestore DB instance
+// Note: Firestore automatically handles online/offline synchronization and caching.
 
 export {
   signInWithPopup,
