@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
 
+import BeforeAfterComparison from '../components/BeforeAfterComparison';
+
 export default function Feed() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
@@ -41,7 +43,7 @@ export default function Feed() {
   // Track user likes
   useEffect(() => {
     if (!user || issues.length === 0) return;
-    
+
     // This is a bit inefficient for large feeds, but for now we'll check each issue
     // In a real app, you'd fetch this in bulk or use a different strategy
     const unsubscribes = issues.map(issue => {
@@ -71,7 +73,7 @@ export default function Feed() {
 
   const handleLike = async (issueId: string) => {
     if (!user) return;
-    
+
     const isLiked = userLikes[issueId];
     const batch = writeBatch(db);
     const likeRef = doc(db, `issues/${issueId}/likes`, user.uid);
@@ -149,7 +151,7 @@ export default function Feed() {
     return (
       <div className="space-y-16 py-12">
         <div className="text-center max-w-3xl mx-auto space-y-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
@@ -164,7 +166,7 @@ export default function Feed() {
             {t('heroDescription')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button 
+            <button
               onClick={() => signInWithPopup(auth, googleProvider)}
               className="w-full sm:w-auto bg-zinc-900 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200"
             >
@@ -182,7 +184,7 @@ export default function Feed() {
             { title: 'Agentic Routing', desc: 'AI agents automatically classify and route complaints to the right department.', icon: Bot },
             { title: 'Predictive Insights', desc: 'City analytics engine predicts hotspots and suggests data-driven solutions.', icon: BarChart3 }
           ].map((feature, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -218,9 +220,8 @@ export default function Feed() {
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                filter === f.id ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
-              }`}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${filter === f.id ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
             >
               {f.label}
             </button>
@@ -237,23 +238,26 @@ export default function Feed() {
             key={issue.id}
             className="bg-slate-900/80 border border-slate-800/80 rounded-3xl overflow-hidden hover:border-emerald-500/40 hover:shadow-2xl transition-all group backdrop-blur-xl"
           >
-            {issue.photoUrl && (
+            {issue.status === 'resolved' ? (
+              <div className="px-6 pt-4">
+                <BeforeAfterComparison issue={issue} />
+              </div>
+            ) : issue.photoUrl ? (
               <div className="aspect-video w-full overflow-hidden bg-slate-950 relative">
-                <img 
-                  src={issue.photoUrl} 
-                  alt={issue.title} 
+                <img
+                  src={issue.photoUrl}
+                  alt={issue.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                   referrerPolicy="no-referrer"
                 />
               </div>
-            )}
+            ) : null}
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-start">
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                  issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                  issue.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                  'bg-slate-800 text-slate-300 border border-slate-700'
-                }`}>
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                    issue.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                      'bg-slate-800 text-slate-300 border border-slate-700'
+                  }`}>
                   {issue.status}
                 </span>
                 <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
@@ -266,7 +270,7 @@ export default function Feed() {
                 <div className="flex justify-between items-start gap-2">
                   <h3 className="text-lg font-bold text-white leading-snug flex-1">{issue.title}</h3>
                   {user && issue.reporterUid === user.uid && issue.status === 'open' && (
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingIssue(issue);
                         setEditFormData({ title: issue.title, description: issue.description });
@@ -288,16 +292,15 @@ export default function Feed() {
 
               <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <button 
+                  <button
                     onClick={() => handleLike(issue.id)}
-                    className={`flex items-center gap-1.5 transition-colors ${
-                      userLikes[issue.id] ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-emerald-400'
-                    }`}
+                    className={`flex items-center gap-1.5 transition-colors ${userLikes[issue.id] ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-emerald-400'
+                      }`}
                   >
                     <ThumbsUp className={`w-4 h-4 ${userLikes[issue.id] ? 'fill-emerald-400' : ''}`} />
                     <span className="text-xs">{issue.likesCount || 0}</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveComments(issue.id)}
                     className="flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 transition-colors"
                   >
@@ -339,7 +342,7 @@ export default function Feed() {
             >
               <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold">{t('comments')}</h3>
-                <button 
+                <button
                   onClick={() => setActiveComments(null)}
                   className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
                 >
@@ -421,7 +424,7 @@ export default function Feed() {
             >
               <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold">Edit Issue</h3>
-                <button 
+                <button
                   onClick={() => setEditingIssue(null)}
                   className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
                 >
@@ -472,7 +475,7 @@ export default function Feed() {
           </div>
         )}
       </AnimatePresence>
-      
+
       {filteredIssues.length === 0 && (
         <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-zinc-200">
           <AlertCircle className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
