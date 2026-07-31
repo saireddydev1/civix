@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the platform (citizen, official, or admin).",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoUrl": { "type": "string" },
+        "role": { "type": "string", "enum": ["citizen", "official", "admin"] },
+        "departmentId": { "type": "string", "description": "Assigned department for officials." }
+      },
+      "required": ["displayName", "email", "role"]
+    },
+    "Issue": {
+      "title": "Issue",
+      "description": "A civic issue reported by a citizen.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "in-progress", "resolved", "closed"] },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "address": { "type": "string" }
+          }
+        },
+        "photoUrl": { "type": "string" },
+        "resolutionPhotoUrl": { "type": "string" },
+        "reporterUid": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reporterPhotoUrl": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "likesCount": { "type": "integer", "description": "Number of likes." },
+        "commentsCount": { "type": "integer", "description": "Number of comments." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "category", "status", "reporterUid", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a civic issue.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhotoUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["text", "authorUid", "authorName", "createdAt"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "A government department responsible for resolving issues.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles."
+    },
+    "/issues/{issueId}": {
+      "schema": "Issue",
+      "description": "Civic issues."
+    },
+    "/issues/{issueId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on an issue."
+    },
+    "/issues/{issueId}/likes/{userId}": {
+      "schema": { "type": "object", "properties": { "createdAt": { "type": "string", "format": "date-time" } } },
+      "description": "Likes on an issue."
+    },
+    "/departments/{deptId}": {
+      "schema": "Department",
+      "description": "Government departments."
+    }
+  }
+}
