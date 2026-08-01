@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { db, collection, query, onSnapshot, where, doc, updateDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
-import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, RefreshCw, Edit2, X, Loader2, Sparkles } from 'lucide-react';
+import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, Edit2, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { DEPARTMENTS } from '../constants';
-import { seedDemoData } from '../utils/seedData';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Dashboard() {
   const { user, profile, setProfile } = useAuth();
   const [myIssues, setMyIssues] = useState<any[]>([]);
-  const [updating, setUpdating] = useState(false);
-  const [seeding, setSeeding] = useState(false);
+
   const [editingIssue, setEditingIssue] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -26,20 +23,6 @@ export default function Dashboard() {
     });
     return unsubscribe;
   }, [user]);
-
-  const handleSeedData = async () => {
-    if (!user) return;
-    setSeeding(true);
-    try {
-      await seedDemoData(user.uid, profile?.displayName || 'Demo User');
-      alert("Sample civic issues successfully seeded! Check your Feed and City Map.");
-    } catch (error) {
-      console.error("Seeding failed:", error);
-      alert("Could not seed data. Please check Firestore security rules.");
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   const handleUpdateIssue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,24 +44,10 @@ export default function Dashboard() {
     }
   };
 
-  const handleRoleSwitch = async (role: string, deptId?: string) => {
-    if (!user) return;
-    setUpdating(true);
-    try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        role,
-        departmentId: deptId || null
-      });
-      setProfile((prev: any) => ({ ...prev, role, departmentId: deptId || null }));
-    } catch (error) {
-      console.error("Failed to switch role", error);
-    } finally {
-      setUpdating(false);
-    }
-  };
+
 
   const getDeptIcon = (id: any) => {
-    switch(id) {
+    switch (id) {
       case 'municipal': return <Building2 className="w-4 h-4" />;
       case 'transport': return <Truck className="w-4 h-4" />;
       case 'electricity': return <Zap className="w-4 h-4" />;
@@ -92,10 +61,10 @@ export default function Dashboard() {
     <div className="space-y-8 pb-20">
       <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row items-center gap-8 text-slate-100">
         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/20 shadow-xl">
-          <img 
-            src={profile?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.displayName || 'User')}`} 
-            className="w-full h-full object-cover" 
-            referrerPolicy="no-referrer" 
+          <img
+            src={profile?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.displayName || 'User')}`}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
             alt={profile?.displayName || 'User'}
           />
         </div>
@@ -106,21 +75,12 @@ export default function Dashboard() {
               <Mail className="w-4 h-4 text-emerald-400" /> {profile?.email}
             </span>
             <span className="flex items-center gap-1.5 text-xs font-semibold capitalize text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-              {getDeptIcon(profile?.departmentId)} 
+              {getDeptIcon(profile?.departmentId)}
               {profile?.role} {profile?.departmentId ? `(${profile.departmentId})` : ''}
             </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-3 items-center">
-          <button
-            onClick={handleSeedData}
-            disabled={seeding}
-            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-3 rounded-2xl text-xs font-extrabold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
-            title="Seed sample complaints for presentation"
-          >
-            {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-slate-950" />}
-            <span>Seed Demo Issues</span>
-          </button>
           <div className="text-center px-5 py-3 bg-slate-950/60 border border-slate-800 rounded-2xl">
             <div className="text-xl font-extrabold text-white">{myIssues.length}</div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reports</div>
@@ -163,39 +123,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Demo Role Switcher */}
-      <div className="bg-slate-900/60 p-8 rounded-3xl border border-slate-800 border-dashed backdrop-blur-xl">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-bold text-white">Demo: Switch Active Role</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Test the platform as different department officials.</p>
-          </div>
-          {updating && <RefreshCw className="w-5 h-5 animate-spin text-emerald-400" />}
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <button
-            onClick={() => handleRoleSwitch('citizen')}
-            className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border ${
-              profile?.role === 'citizen' ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-slate-950/60 text-slate-300 border-slate-800 hover:border-slate-700'
-            }`}
-          >
-            Citizen
-          </button>
-          {DEPARTMENTS.map(dept => (
-            <button
-              key={dept.id}
-              onClick={() => handleRoleSwitch('official', dept.id)}
-              className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center gap-2 ${
-                profile?.departmentId === dept.id ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-slate-950/60 text-slate-300 border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              {getDeptIcon(dept.id)}
-              <span className="truncate w-full">{dept.name.split(' ')[0]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-white">My Reported Issues</h2>
@@ -217,11 +145,10 @@ export default function Dashboard() {
                     <div className="text-xs text-slate-400">{issue.departmentId}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                      issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                      issue.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                      'bg-slate-800 text-slate-300 border border-slate-700'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                        issue.status === 'in-progress' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                          'bg-slate-800 text-slate-300 border border-slate-700'
+                      }`}>
                       {issue.status}
                     </span>
                   </td>
@@ -230,7 +157,7 @@ export default function Dashboard() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     {issue.status === 'open' && (
-                      <button 
+                      <button
                         onClick={() => {
                           setEditingIssue(issue);
                           setEditFormData({ title: issue.title, description: issue.description });
@@ -247,7 +174,7 @@ export default function Dashboard() {
               {myIssues.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-slate-500 text-xs">
-                    You haven't reported any issues yet. Click "Seed Demo Issues" above to populate sample reports.
+                    You haven't reported any issues yet.
                   </td>
                 </tr>
               )}
@@ -275,7 +202,7 @@ export default function Dashboard() {
             >
               <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold">Edit Issue</h3>
-                <button 
+                <button
                   onClick={() => setEditingIssue(null)}
                   className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
                 >
