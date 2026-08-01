@@ -26,25 +26,14 @@ import {
   deleteDoc,
   writeBatch
 } from 'firebase/firestore';
-let defaultConfig: Record<string, any> = {};
-try {
-  const configs = (import.meta as any).glob('../firebase-applet-config.json', { eager: true });
-  const localFile = configs['../firebase-applet-config.json'] as any;
-  if (localFile?.default) {
-    defaultConfig = localFile.default;
-  }
-} catch {
-  // Ignored in build environment
-}
-
 const firebaseConfig = {
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || defaultConfig.projectId || "",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || defaultConfig.appId || "",
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || defaultConfig.apiKey || "",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || defaultConfig.authDomain || "",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || defaultConfig.storageBucket || "",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || defaultConfig.messagingSenderId || "",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || defaultConfig.measurementId || ""
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
 };
 
 const config = firebaseConfig as typeof firebaseConfig & { firestoreDatabaseId?: string };
