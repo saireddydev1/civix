@@ -48,7 +48,7 @@ const OFFICIAL_PRESETS = [
 
 export default function Login() {
   const { t } = useLanguage();
-  const { user: authUser } = useAuth();
+  const { user: authUser, setProfile } = useAuth();
   const navigate = useNavigate();
 
   const [portalType, setPortalType] = useState<'citizen' | 'official' | 'admin'>('citizen');
@@ -71,8 +71,9 @@ export default function Login() {
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
+      let profileData: any = null;
       if (!userDoc.exists()) {
-        const profileData = {
+        profileData = {
           displayName: nameOverride || user.displayName || 'Civic User',
           email: user.email,
           photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameOverride || user.displayName || 'User')}&background=10b981&color=fff`,
@@ -82,11 +83,16 @@ export default function Login() {
           createdAt: new Date().toISOString()
         };
         await setDoc(userDocRef, profileData, { merge: true });
+      } else {
+        profileData = userDoc.data();
+      }
+      if (profileData) {
+        setProfile(profileData);
       }
     } catch (err) {
       console.warn('Could not update profile document in Firestore:', err);
     } finally {
-      navigate('/', { replace: true });
+      navigate('/feed', { replace: true });
     }
   };
 
@@ -204,17 +210,18 @@ export default function Login() {
       }
 
       // Upsert official user document
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, {
+      const officialProfile = {
         displayName: preset.name,
         email: preset.email,
         role: preset.role,
         departmentId: preset.deptId,
         photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(preset.name)}&background=10b981&color=fff`,
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      };
+      await setDoc(userDocRef, officialProfile, { merge: true });
+      setProfile(officialProfile);
 
-      navigate('/department', { replace: true });
+      navigate('/feed', { replace: true });
     } catch (err: any) {
       console.error("Auto-fill login failed:", err);
       setError(formatAuthError(err));

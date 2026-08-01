@@ -29,11 +29,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (userDoc.exists()) {
             setProfile(userDoc.data());
           } else {
-            setProfile(null);
+            setProfile({
+              displayName: currentUser.displayName || 'Civic User',
+              email: currentUser.email,
+              photoUrl: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=10b981&color=fff`,
+              role: 'citizen',
+              departmentId: null
+            });
           }
         } catch (err) {
           console.error("Error fetching user profile from Firestore:", err);
-          setProfile(null);
+          setProfile({
+            displayName: currentUser.displayName || 'Civic User',
+            email: currentUser.email,
+            role: 'citizen',
+            departmentId: null
+          });
         }
       } else {
         setProfile(null);
