@@ -66,19 +66,19 @@ export default function Login() {
 
   const activePreset = OFFICIAL_PRESETS.find(p => p.id === (portalType === 'admin' ? 'admin' : selectedPresetId)) || OFFICIAL_PRESETS[0];
 
-  // Helper to ensure profile exists and navigate directly to dashboard
+  // Helper to ensure profile exists and navigate directly to destination panel
   const ensureUserProfileAndNavigate = async (user: any, nameOverride?: string) => {
+    let profileData: any = null;
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
-      let profileData: any = null;
       if (!userDoc.exists()) {
         profileData = {
           displayName: nameOverride || user.displayName || 'Civic User',
           email: user.email,
           photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameOverride || user.displayName || 'User')}&background=10b981&color=fff`,
-          role: 'citizen',
-          departmentId: null,
+          role: portalType === 'citizen' ? 'citizen' : (activePreset?.role || 'official'),
+          departmentId: portalType === 'citizen' ? null : (activePreset?.deptId || 'municipal'),
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString()
         };
@@ -92,7 +92,9 @@ export default function Login() {
     } catch (err) {
       console.warn('Could not update profile document in Firestore:', err);
     } finally {
-      navigate('/feed', { replace: true });
+      const isOfficialOrAdmin = profileData?.role === 'official' || profileData?.role === 'admin' || portalType === 'official' || portalType === 'admin';
+      const targetPath = isOfficialOrAdmin ? '/department' : '/feed';
+      navigate(targetPath, { replace: true });
     }
   };
 
@@ -221,7 +223,7 @@ export default function Login() {
       await setDoc(userDocRef, officialProfile, { merge: true });
       setProfile(officialProfile);
 
-      navigate('/feed', { replace: true });
+      navigate('/department', { replace: true });
     } catch (err: any) {
       console.error("Auto-fill login failed:", err);
       setError(formatAuthError(err));
