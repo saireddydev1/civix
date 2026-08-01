@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, X, Loader2, Sparkles, User, Minimize2 } from 'lucide-react';
+import { Bot, Send, X, Loader2, Sparkles, User, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { askCivixAiAssistant } from '../gemini';
 
 interface Message {
   id: string;
@@ -8,6 +9,13 @@ interface Message {
   text: string;
   timestamp: string;
 }
+
+const SUGGESTED_QUESTIONS = [
+  "delay in garbage collection",
+  "How do I report a heavy water leakage in my street?",
+  "heavy traffic jam on main road signal",
+  "What department handles broken street lights?"
+];
 
 export default function AICopilot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +25,7 @@ export default function AICopilot() {
     {
       id: '1',
       sender: 'ai',
-      text: 'Hello! I am your CIVIX AI Assistant. How can I help you report an issue, track a complaint, or contact your local municipal department today?',
+      text: 'Hello! I am CIVIX AI, your official intelligent assistant for smart city governance and public civic inquiries. How can I assist you with municipal services, public infrastructure, roads, water, power, education, or health today?',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -34,15 +42,13 @@ export default function AICopilot() {
     }
   }, [messages, isOpen]);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  const processQuery = async (queryText: string) => {
+    if (!queryText.trim() || loading) return;
 
-    const userText = input.trim();
     const userMsg: Message = {
       id: Date.now().toString(),
       sender: 'user',
-      text: userText,
+      text: queryText.trim(),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -51,30 +57,20 @@ export default function AICopilot() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/ai/intelligence', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userText })
-      });
-
-      if (!response.ok) {
-        throw new Error('AI response error');
-      }
-
-      const data = await response.json();
+      const aiResponse = await askCivixAiAssistant(queryText.trim());
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: data.text || 'I have processed your request. Please check the civic dashboard for live updates.',
+        text: aiResponse,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
-      console.warn('AI Copilot fallback:', error);
+      console.warn('AI Assistant error:', error);
       const fallbackMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: 'I can assist you with reporting potholes, water pipeline leaks, power outages, and garbage collection. You can also view real-time issues on the City GIS Map.',
+        text: 'Thank you for reaching out to CIVIX AI. Please submit your complaint via "+ Report Issue" in the navigation bar for instant automated field dispatch and earn +10 Civic Coins!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, fallbackMsg]);
@@ -83,17 +79,23 @@ export default function AICopilot() {
     }
   };
 
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await processQuery(input);
+  };
+
   return (
     <>
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="relative group bg-gradient-to-r from-emerald-500 to-teal-500 text-zinc-950 p-4 rounded-2xl shadow-2xl hover:scale-105 transition-all flex items-center justify-center border border-emerald-400/30"
+          className="relative group bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-400 text-slate-950 p-4 rounded-2xl shadow-2xl hover:scale-105 transition-all flex items-center justify-center border border-emerald-400/30"
           title="Open CIVIX AI Assistant"
         >
-          <Bot className="w-7 h-7 text-zinc-950" />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+          <Bot className="w-7 h-7 text-slate-950 font-bold" />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-slate-950 animate-ping" />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-slate-950" />
         </button>
       </div>
 
@@ -104,78 +106,93 @@ export default function AICopilot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] bg-zinc-900 border border-zinc-800 text-white rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[520px]"
+            className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] bg-slate-900 border border-slate-800 text-slate-100 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[560px]"
           >
             {/* Header */}
-            <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+            <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl flex items-center justify-center">
+                <div className="w-9 h-9 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl flex items-center justify-center shadow-inner">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                    <span>CIVIX AI Copilot</span>
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <h3 className="font-extrabold text-sm text-white flex items-center gap-1.5">
+                    <span>CIVIX AI Assistant</span>
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
                   </h3>
-                  <p className="text-[10px] text-zinc-400">24/7 Smart Governance Assistant</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Smart City Governance & Inquiries</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Chat Content */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar bg-zinc-900/60">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar bg-slate-950/50">
               {messages.map(msg => (
                 <div
                   key={msg.id}
                   className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                    msg.sender === 'user' ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-emerald-400 border border-zinc-700'
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md ${
+                    msg.sender === 'user' ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-800 text-emerald-400 border border-slate-700'
                   }`}>
                     {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
 
-                  <div className={`max-w-[80%] rounded-2xl p-3 text-xs leading-relaxed ${
+                  <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm ${
                     msg.sender === 'user'
-                      ? 'bg-emerald-600 text-white rounded-tr-none'
-                      : 'bg-zinc-800/90 text-zinc-200 border border-zinc-700/60 rounded-tl-none'
+                      ? 'bg-emerald-500 text-slate-950 font-medium rounded-tr-none'
+                      : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none'
                   }`}>
                     <p className="whitespace-pre-wrap">{msg.text}</p>
-                    <span className="block text-[9px] text-zinc-400 text-right mt-1 opacity-70">
+                    <span className={`block text-[9px] text-right mt-1.5 opacity-75 ${msg.sender === 'user' ? 'text-slate-950 font-bold' : 'text-slate-400'}`}>
                       {msg.timestamp}
                     </span>
                   </div>
                 </div>
               ))}
+
               {loading && (
-                <div className="flex items-center gap-2 text-zinc-400 text-xs pl-2">
+                <div className="flex items-center gap-2 text-slate-400 text-xs pl-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60 w-fit">
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-                  <span>Thinking...</span>
+                  <span className="font-medium">CIVIX AI is analyzing query...</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Suggested Prompt Chips */}
+            <div className="px-3 py-2 bg-slate-950/80 border-t border-slate-800/60 overflow-x-auto custom-scrollbar flex gap-1.5 shrink-0">
+              {SUGGESTED_QUESTIONS.map((q, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => processQuery(q)}
+                  disabled={loading}
+                  className="whitespace-nowrap text-[10px] bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-slate-800 hover:border-emerald-500/40 px-2.5 py-1 rounded-full transition-all shrink-0 font-medium disabled:opacity-50"
+                >
+                  "{q}"
+                </button>
+              ))}
+            </div>
+
             {/* Input Bar */}
-            <form onSubmit={handleSend} className="p-3 bg-zinc-950 border-t border-zinc-800 flex gap-2">
+            <form onSubmit={handleSend} className="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder="Ask about potholes, water leaks, status..."
-                className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500"
+                placeholder="Ask about garbage, water leaks, street lights, traffic..."
+                className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 p-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
+                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 p-2.5 rounded-xl font-bold transition-all disabled:opacity-40 flex items-center justify-center shadow-md shadow-emerald-500/20"
               >
                 <Send className="w-4 h-4" />
               </button>

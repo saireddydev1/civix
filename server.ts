@@ -24,7 +24,7 @@ function getGroq() {
 
 function getGemini() {
   if (!geminiClient) {
-    const key = process.env.GEMINI_API_KEY;
+    const key = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "";
     if (!key) {
       return null;
     }
@@ -42,23 +42,38 @@ async function generateText(prompt: string, { jsonMode = false }: { jsonMode?: b
         model: "llama-3.3-70b-versatile",
         ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
       });
-      return completion.choices[0]?.message?.content || "";
+      const text = completion.choices[0]?.message?.content || "";
+      if (text) return text;
     } catch (error) {
-      console.warn("Groq failed, falling back to Gemini", error);
+      console.warn("Groq failed, trying Gemini fallback", error);
     }
   }
 
   const gemini = getGemini();
   if (gemini) {
-    const response = await gemini.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      ...(jsonMode ? { config: { responseMimeType: "application/json" } } : {}),
-    });
-    return response.text;
+    try {
+      const response = await gemini.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+        ...(jsonMode ? { config: { responseMimeType: "application/json" } } : {}),
+      });
+      if (response?.text) return response.text;
+    } catch (error) {
+      console.warn("Gemini 2.0 Flash failed, trying 1.5-flash fallback", error);
+      try {
+        const response15 = await gemini.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents: prompt,
+          ...(jsonMode ? { config: { responseMimeType: "application/json" } } : {}),
+        });
+        if (response15?.text) return response15.text;
+      } catch (err2) {
+        console.warn("Gemini 1.5 Flash failed", err2);
+      }
+    }
   }
 
-  throw new Error("No AI provider is configured. Set GROQ_API_KEY or GEMINI_API_KEY.");
+  return "";
 }
 
 async function startServer() {
@@ -90,6 +105,18 @@ async function startServer() {
       res.json({ text });
     } catch (error: any) {
       console.error("AI Intelligence Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { prompt, query } = req.body;
+      const finalPrompt = prompt || query || "";
+      const text = await generateText(finalPrompt);
+      res.json({ text, response: text });
+    } catch (error: any) {
+      console.error("AI Chat Error:", error);
       res.status(500).json({ error: error.message });
     }
   });
