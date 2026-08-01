@@ -52,79 +52,19 @@ export const Navbar = () => {
                 <span className="text-xl font-black tracking-tight text-white">{t('appName')}</span>
               </Link>
 
-              {/* Quick Role Switcher Badge */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowRoleMenu(!showRoleMenu)}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold hover:bg-emerald-500/20 transition-all shadow-sm"
-                  title="Switch Active Portal / Role"
-                >
-                  {profile?.role === 'official' ? (
-                    <>
-                      <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="capitalize">{profile?.departmentId || 'Official'} Mode</span>
-                    </>
-                  ) : (
-                    <>
-                      <User className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Citizen Portal</span>
-                    </>
-                  )}
-                  {updatingRole ? (
-                    <RefreshCw className="w-3 h-3 animate-spin text-emerald-400 ml-0.5" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 text-emerald-400" />
-                  )}
-                </button>
-
-                <AnimatePresence>
-                  {showRoleMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute left-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-2 z-50 text-slate-100"
-                    >
-                      <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                        Switch Active Portal Mode
-                      </div>
-                      
-                      <button
-                        onClick={() => handleRoleChange('citizen')}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all mt-1 ${
-                          profile?.role === 'citizen' ? 'bg-emerald-500 text-slate-950' : 'hover:bg-slate-800 text-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          <span>Citizen Portal</span>
-                        </div>
-                        {profile?.role === 'citizen' && <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded-full">Active</span>}
-                      </button>
-
-                      <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-800 mt-2">
-                        Department Access
-                      </div>
-
-                      <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
-                        {DEPARTMENTS.map(dept => (
-                          <button
-                            key={dept.id}
-                            onClick={() => handleRoleChange('official', dept.id)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                              profile?.role === 'official' && profile?.departmentId === dept.id ? 'bg-emerald-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-300'
-                            }`}
-                          >
-                            <span className="truncate">{dept.name}</span>
-                            {profile?.role === 'official' && profile?.departmentId === dept.id && (
-                              <span className="text-[9px] bg-slate-950/20 px-1.5 py-0.5 rounded-full shrink-0">Active</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              {/* Portal Mode Badge */}
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-extrabold shadow-sm">
+                {profile?.role === 'official' || profile?.role === 'admin' ? (
+                  <>
+                    <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="capitalize">{profile?.departmentId || 'Official'} Hub</span>
+                  </>
+                ) : (
+                  <>
+                    <User className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Citizen Portal</span>
+                  </>
+                )}
               </div>
             </div>
 

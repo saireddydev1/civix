@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db, collection, addDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
-import { analyzeIssue } from '../gemini';
-import { Camera, MapPin, Send, Loader2, Sparkles, CheckCircle2, Video, Truck, Zap, Droplets, GraduationCap, Building2, HeartPulse, X, Upload, AlertCircle, Trash2, Waves, Sun, MoreHorizontal, Mic, MicOff, Scan, Target, Cpu } from 'lucide-react';
+import { Camera, MapPin, Send, Loader2, CheckCircle2, Video, Truck, Zap, Droplets, GraduationCap, Building2, HeartPulse, X, Upload, AlertCircle, Trash2, Waves, Sun, MoreHorizontal, Scan, Target, Cpu } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DEPARTMENTS, ISSUE_CATEGORIES } from '../constants';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
@@ -149,10 +148,7 @@ export default function ReportIssue() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [showMap, setShowMap] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [scanningPhoto, setScanningPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -180,23 +176,6 @@ export default function ReportIssue() {
       lng: defaultCenter.lng
     }
   });
-
-  const toggleVoiceRecording = () => {
-    if (isRecording) {
-      setIsRecording(false);
-    } else {
-      setIsRecording(true);
-      setTimeout(() => {
-        setFormData(prev => ({
-          ...prev,
-          description: prev.description 
-            ? `${prev.description} [Voice Note]: Large pothole on main road causing heavy traffic and water stagnation.`
-            : 'Large pothole on main road causing heavy traffic congestion near the junction.'
-        }));
-        setIsRecording(false);
-      }, 3500);
-    }
-  };
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -284,26 +263,6 @@ export default function ReportIssue() {
     }
   };
 
-  const handleAnalyze = async () => {
-    if (!formData.title || !formData.description) return;
-    setAnalyzing(true);
-    setScanningPhoto(true);
-    try {
-      const result = await analyzeIssue(formData.title, formData.description);
-      setAiAnalysis(result);
-      setFormData(prev => ({ 
-        ...prev, 
-        departmentId: result.departmentId || prev.departmentId,
-        category: result.category || prev.category
-      }));
-    } catch (error) {
-      console.error("AI Analysis failed", error);
-    } finally {
-      setAnalyzing(false);
-      setTimeout(() => setScanningPhoto(false), 2000);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.departmentId) {
@@ -322,7 +281,7 @@ export default function ReportIssue() {
         commentsCount: 0,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        aiMetadata: aiAnalysis
+        aiMetadata: null
       });
       navigate('/');
     } catch (error) {
@@ -369,37 +328,7 @@ export default function ReportIssue() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('description')}</label>
-                <button
-                  type="button"
-                  onClick={toggleVoiceRecording}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all border ${
-                    isRecording 
-                      ? 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse' 
-                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-                  }`}
-                  title="Speak to dictate issue details using AI voice transcription"
-                >
-                  {isRecording ? <Mic className="w-3.5 h-3.5 text-red-400 animate-bounce" /> : <Mic className="w-3.5 h-3.5 text-emerald-400" />}
-                  <span>{isRecording ? 'Listening...' : 'Voice Dictate'}</span>
-                </button>
-              </div>
-
-              {/* Animated Soundwave Equalizer when recording */}
-              {isRecording && (
-                <div className="flex items-center justify-center gap-1 py-2 bg-slate-950/80 border border-slate-800 rounded-xl">
-                  {[0.4, 0.9, 0.5, 1.0, 0.7, 0.3, 0.8, 0.6].map((heightScale, i) => (
-                    <motion.div
-                      key={i}
-                      animate={{ scaleY: [0.3, heightScale, 0.3] }}
-                      transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.08 }}
-                      className="w-1 h-5 bg-gradient-to-t from-emerald-500 to-teal-400 rounded-full"
-                    />
-                  ))}
-                  <span className="text-[11px] font-bold text-emerald-400 ml-2">Transcribing Audio...</span>
-                </div>
-              )}
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t('description')}</label>
 
               <textarea
                 required
@@ -409,40 +338,6 @@ export default function ReportIssue() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                disabled={analyzing || !formData.title || !formData.description}
-                onClick={handleAnalyze}
-                className="flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2.5 rounded-xl hover:bg-emerald-500/20 transition-all disabled:opacity-50"
-              >
-                {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-400" />}
-                {t('aiTriage')}
-              </button>
-              {aiAnalysis && (
-                <div className="mt-2 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex-1">
-                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-1">
-                    <Sparkles className="w-3 h-3" />
-                    AI Auto-Categorized
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[10px]">
-                    <div>
-                      <span className="text-slate-400 block">Category</span>
-                      <span className="text-white font-bold capitalize">{aiAnalysis.category}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">Priority</span>
-                      <span className={`font-bold ${
-                        aiAnalysis.priority === 'Critical' ? 'text-red-400' :
-                        aiAnalysis.priority === 'High' ? 'text-amber-400' :
-                        'text-emerald-400'
-                      }`}>{aiAnalysis.priority}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="space-y-2">
