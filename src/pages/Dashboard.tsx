@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { db, collection, query, onSnapshot, where, doc, updateDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
 import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, Edit2, X, Loader2 } from 'lucide-react';
@@ -12,6 +13,10 @@ export default function Dashboard() {
   const [editingIssue, setEditingIssue] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
   const [savingEdit, setSavingEdit] = useState(false);
+
+  if (profile?.role === 'official' || profile?.role === 'admin') {
+    return <Navigate to="/department" replace />;
+  }
 
   useEffect(() => {
     if (!user) return;

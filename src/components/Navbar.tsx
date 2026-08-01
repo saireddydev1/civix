@@ -52,7 +52,7 @@ export const Navbar = () => {
       <nav className="bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-50 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <Link to="/feed" className="flex items-center gap-2.5">
                 <div className="w-9 h-9 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                   <ShieldCheck className="text-slate-950 w-5 h-5 font-bold" />
@@ -60,20 +60,16 @@ export const Navbar = () => {
                 <span className="text-xl font-black tracking-tight text-white">{t('appName')}</span>
               </Link>
 
-              {/* Portal Mode Badge */}
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-extrabold shadow-sm">
-                {profile?.role === 'official' || profile?.role === 'admin' ? (
-                  <>
-                    <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="capitalize">{profile?.departmentId || 'Official'} Hub</span>
-                  </>
-                ) : (
-                  <>
-                    <User className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Citizen Portal</span>
-                  </>
-                )}
-              </div>
+              {(profile?.role === 'official' || profile?.role === 'admin') && (
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-extrabold shadow-sm">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="capitalize">
+                    {profile?.displayName && profile.displayName !== 'Civic User' 
+                      ? profile.displayName 
+                      : (profile?.departmentId ? `${profile.departmentId} Department` : 'Department Hub')}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Desktop Nav */}
@@ -91,11 +87,6 @@ export const Navbar = () => {
               <Link to="/leaderboard" className="flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 transition-colors">
                 <Trophy className="w-4 h-4 text-amber-400" /> Leaderboard
               </Link>
-              {profile?.role === 'official' && (
-                <Link to="/department" className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shadow-md shadow-emerald-500/20">
-                  Dept Dashboard
-                </Link>
-              )}
               
               <div className="relative">
                 <button 
@@ -134,9 +125,20 @@ export const Navbar = () => {
                 </AnimatePresence>
               </div>
 
-              <Link to="/dashboard" className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3.5 py-1.5 rounded-full hover:bg-slate-700 transition-all text-slate-200">
-                <UserIcon className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-bold">{profile?.displayName}</span>
+              <Link 
+                to={profile?.role === 'official' || profile?.role === 'admin' ? '/department' : '/dashboard'} 
+                className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3.5 py-1.5 rounded-full hover:bg-slate-700 transition-all text-slate-200"
+              >
+                {profile?.role === 'official' || profile?.role === 'admin' ? (
+                  <Building2 className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <UserIcon className="w-4 h-4 text-emerald-400" />
+                )}
+                <span className="text-xs font-bold capitalize">
+                  {profile?.role === 'official' || profile?.role === 'admin'
+                    ? (profile?.displayName && profile.displayName !== 'Civic User' ? profile.displayName : 'Department Hub')
+                    : profile?.displayName}
+                </span>
               </Link>
               <button onClick={handleLogout} className="text-slate-400 hover:text-red-400 transition-colors">
                 <LogOut className="w-5 h-5" />
@@ -166,7 +168,7 @@ export const Navbar = () => {
               <Link to="/map" onClick={() => setIsOpen(false)} className="block text-slate-300">{t('map')}</Link>
               <Link to="/analytics" onClick={() => setIsOpen(false)} className="block text-slate-300">{t('analytics')}</Link>
               <Link to="/leaderboard" onClick={() => setIsOpen(false)} className="block text-slate-300">Leaderboard</Link>
-              <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-slate-300">{t('profile')}</Link>
+              <Link to={profile?.role === 'official' || profile?.role === 'admin' ? '/department' : '/dashboard'} onClick={() => setIsOpen(false)} className="block text-slate-300">{t('profile')}</Link>
               <button onClick={handleLogout} className="block w-full text-left text-red-400 font-bold">Sign Out</button>
             </motion.div>
           )}
