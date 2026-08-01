@@ -28,7 +28,7 @@ const AppContent = () => {
   if (loading) return <div className="flex items-center justify-center h-screen bg-slate-950"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>;
 
   const isAuthenticated = Boolean(user && profile);
-  const isPublicLanding = !isAuthenticated || location.pathname === '/welcome' || location.pathname === '/landing';
+  const isPublicLanding = !isAuthenticated || location.pathname === '/home' || location.pathname === '/welcome' || location.pathname === '/landing';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between">
@@ -36,6 +36,7 @@ const AppContent = () => {
         {isAuthenticated && !isPublicLanding && <Navbar />}
         <main className={isPublicLanding ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
           <Routes>
+            <Route path="/home" element={<LandingPage />} />
             <Route path="/welcome" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/about" element={<AboutUs />} />
@@ -46,13 +47,13 @@ const AppContent = () => {
               <>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/feed" element={<Navigate to="/welcome" replace />} />
-                <Route path="/report" element={<Navigate to="/welcome" replace />} />
-                <Route path="/map" element={<Navigate to="/welcome" replace />} />
-                <Route path="/dashboard" element={<Navigate to="/welcome" replace />} />
-                <Route path="/analytics" element={<Navigate to="/welcome" replace />} />
-                <Route path="/leaderboard" element={<Navigate to="/welcome" replace />} />
-                <Route path="/department" element={<Navigate to="/welcome" replace />} />
+                <Route path="/feed" element={<Navigate to="/home" replace />} />
+                <Route path="/report" element={<Navigate to="/home" replace />} />
+                <Route path="/map" element={<Navigate to="/home" replace />} />
+                <Route path="/dashboard" element={<Navigate to="/home" replace />} />
+                <Route path="/analytics" element={<Navigate to="/home" replace />} />
+                <Route path="/leaderboard" element={<Navigate to="/home" replace />} />
+                <Route path="/department" element={<Navigate to="/home" replace />} />
                 <Route path="*" element={<LandingPage />} />
               </>
             ) : (

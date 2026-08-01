@@ -20,7 +20,7 @@ export const Navbar = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/welcome');
+      navigate('/home');
     } catch (err) {
       console.error('Failed to sign out:', err);
     }
