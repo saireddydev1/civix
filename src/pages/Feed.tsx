@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db, collection, query, onSnapshot, auth, googleProvider, signInWithPopup, doc, updateDoc, increment, setDoc, deleteDoc, getDoc, addDoc, serverTimestamp, writeBatch } from '../firebase';
 import { MapPin, Clock, CheckCircle2, AlertCircle, MessageSquare, ThumbsUp, Sparkles, BarChart3, Bot, Send, X, Camera, User, Loader2, Edit2, Building2, PhoneCall } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -10,6 +11,7 @@ import { GHMC_ZONES } from '../constants';
 import BeforeAfterComparison from '../components/BeforeAfterComparison';
 
 export default function Feed() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const [issues, setIssues] = useState<any[]>([]);
@@ -513,11 +515,43 @@ export default function Feed() {
       </AnimatePresence>
 
       {filteredIssues.length === 0 && (
-        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-zinc-200">
-          <AlertCircle className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-zinc-900">{t('feed.noIssues')}</h3>
-          <p className="text-zinc-500">{t('feed.noIssuesDesc')}</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-16 px-6 bg-slate-900/80 border border-slate-800/80 rounded-3xl backdrop-blur-xl space-y-4 shadow-2xl my-4"
+        >
+          <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto text-emerald-400">
+            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-xl font-extrabold text-white">
+              {t('noIssues')}
+            </h3>
+            <p className="text-sm text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">
+              {t('noIssuesDesc')}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {selectedZone !== 'all' || filter !== 'all' ? (
+              <button
+                onClick={() => {
+                  setSelectedZone('all');
+                  setFilter('all');
+                }}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all"
+              >
+                Clear Filters
+              </button>
+            ) : null}
+            <button
+              onClick={() => navigate('/report')}
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-2.5 rounded-xl font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20"
+            >
+              + Report New Issue
+            </button>
+          </div>
+        </motion.div>
       )}
     </div>
   );
