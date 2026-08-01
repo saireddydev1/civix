@@ -370,69 +370,72 @@ export default function Feed() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveComments(null)}
-              className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+              className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] text-slate-100"
             >
-              <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
-                <h3 className="text-xl font-bold">{t('comments')}</h3>
+              <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+                <h3 className="text-xl font-black text-white flex items-center gap-2.5">
+                  <MessageSquare className="w-5 h-5 text-emerald-400" />
+                  {t('comments')}
+                </h3>
                 <button
                   onClick={() => setActiveComments(null)}
-                  className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-slate-900/50">
                 {comments.length === 0 ? (
-                  <div className="text-center py-12 text-zinc-400">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p>{t('feed.noComments') || 'No comments yet.'}</p>
+                  <div className="text-center py-12 text-slate-400">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 text-slate-600 opacity-50" />
+                    <p className="text-sm font-medium">{t('feed.noComments') || 'No comments yet.'}</p>
                   </div>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-4">
-                      <div className="w-10 h-10 rounded-full bg-zinc-100 flex-shrink-0 overflow-hidden border border-zinc-200">
+                    <div key={comment.id} className="flex gap-3.5 bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80">
+                      <div className="w-9 h-9 rounded-full bg-slate-800 flex-shrink-0 overflow-hidden border border-slate-700">
                         {comment.authorPhotoUrl ? (
                           <img src={comment.authorPhotoUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-zinc-300" />
+                            <User className="w-4 h-4 text-slate-400" />
                           </div>
                         )}
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm">{comment.authorName}</span>
-                          <span className="text-[10px] text-zinc-400">
+                          <span className="font-bold text-sm text-slate-100">{comment.authorName}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">
                             {comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate()) + ' ago' : 'Just now'}
                           </span>
                         </div>
-                        <p className="text-sm text-zinc-600 leading-relaxed">{comment.text}</p>
+                        <p className="text-sm text-slate-300 leading-relaxed font-normal">{comment.text}</p>
                       </div>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="p-6 border-t border-zinc-100 bg-zinc-50">
+              <div className="p-5 border-t border-slate-800 bg-slate-950/90">
                 <form onSubmit={handleAddComment} className="flex gap-2">
                   <input
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder={t('addComment')}
-                    className="flex-1 px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-sm"
+                    className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-medium"
                   />
                   <button
                     type="submit"
                     disabled={submittingComment || !newComment.trim()}
-                    className="bg-zinc-900 text-white p-3 rounded-xl hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                    className="bg-emerald-500 text-slate-950 font-extrabold p-3 rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-40 flex items-center justify-center shadow-lg shadow-emerald-500/20"
                   >
                     {submittingComment ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                   </button>
@@ -452,19 +455,19 @@ export default function Feed() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setEditingIssue(null)}
-              className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+              className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-100"
             >
-              <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
-                <h3 className="text-xl font-bold">Edit Issue</h3>
+              <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+                <h3 className="text-xl font-extrabold text-white">Edit Issue</h3>
                 <button
                   onClick={() => setEditingIssue(null)}
-                  className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -472,23 +475,23 @@ export default function Feed() {
 
               <form onSubmit={handleUpdateIssue} className="p-6 space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Title</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Title</label>
                   <input
                     type="text"
                     required
                     value={editFormData.title}
                     onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-medium"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Description</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Description</label>
                   <textarea
                     required
                     rows={4}
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none text-sm font-medium"
                   />
                 </div>
 
@@ -496,14 +499,14 @@ export default function Feed() {
                   <button
                     type="button"
                     onClick={() => setEditingIssue(null)}
-                    className="flex-1 py-3 border border-zinc-200 rounded-xl font-bold text-zinc-600 hover:bg-zinc-50 transition-colors"
+                    className="flex-1 py-3 border border-slate-800 rounded-xl font-bold text-slate-300 hover:bg-slate-800 transition-colors text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={savingEdit || !editFormData.title.trim() || !editFormData.description.trim()}
-                    className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-emerald-500 text-slate-950 rounded-xl font-extrabold hover:bg-emerald-400 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-xs shadow-lg shadow-emerald-500/20"
                   >
                     {savingEdit ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
                   </button>
