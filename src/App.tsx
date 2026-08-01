@@ -46,13 +46,13 @@ const AppContent = () => {
               <>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/feed" element={<Navigate to="/login" replace />} />
-                <Route path="/report" element={<Navigate to="/login" replace />} />
-                <Route path="/map" element={<Navigate to="/login" replace />} />
-                <Route path="/dashboard" element={<Navigate to="/login" replace />} />
-                <Route path="/analytics" element={<Navigate to="/login" replace />} />
-                <Route path="/leaderboard" element={<Navigate to="/login" replace />} />
-                <Route path="/department" element={<Navigate to="/login" replace />} />
+                <Route path="/feed" element={<Navigate to="/welcome" replace />} />
+                <Route path="/report" element={<Navigate to="/welcome" replace />} />
+                <Route path="/map" element={<Navigate to="/welcome" replace />} />
+                <Route path="/dashboard" element={<Navigate to="/welcome" replace />} />
+                <Route path="/analytics" element={<Navigate to="/welcome" replace />} />
+                <Route path="/leaderboard" element={<Navigate to="/welcome" replace />} />
+                <Route path="/department" element={<Navigate to="/welcome" replace />} />
                 <Route path="*" element={<LandingPage />} />
               </>
             ) : (

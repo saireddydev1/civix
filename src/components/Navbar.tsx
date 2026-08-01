@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
 import { auth, signOut, db, doc, updateDoc } from '../firebase';
@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import LiveBulletin from './LiveBulletin';
 
 export const Navbar = () => {
+  const navigate = useNavigate();
   const { user, profile, setProfile } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
@@ -16,7 +17,14 @@ export const Navbar = () => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [updatingRole, setUpdatingRole] = useState(false);
 
-  const handleLogout = () => signOut(auth);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/welcome');
+    } catch (err) {
+      console.error('Failed to sign out:', err);
+    }
+  };
 
   const handleRoleChange = async (role: string, deptId?: string) => {
     if (!user) return;
