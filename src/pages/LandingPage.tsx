@@ -9,8 +9,6 @@ import {
   Bot, 
   BarChart3, 
   Building2, 
-  Zap, 
-  Droplets, 
   Truck, 
   Camera, 
   PhoneCall,
@@ -19,18 +17,8 @@ import {
   Sun,
   Waves,
   Trophy,
-  Users,
-  Check,
-  Shield,
-  Activity,
-  Flame,
-  Clock,
-  ChevronDown,
-  MessageSquare,
-  QrCode,
   Star,
-  Award,
-  FileText
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../LanguageContext';
@@ -545,34 +533,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* GHMC WhatsApp AI Bot Banner */}
-      <section id="whatsapp-bot" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-gradient-to-r from-emerald-900/60 via-zinc-900 to-teal-950 border border-emerald-500/40 p-8 sm:p-12 rounded-3xl backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-4 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-xs font-black uppercase">
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
-              WHATSAPP AI COMPLAINT BOT
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-              Report Issues Directly via WhatsApp
-            </h2>
-            <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
-              Prefer WhatsApp? Send a photo and your location to the official GHMC AI Assistant bot at <span className="font-bold text-emerald-400">+91 98480 12345</span>. CIVIX will automatically register your ticket.
-            </p>
-          </div>
-
-          <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 flex items-center gap-6 shrink-0 shadow-2xl">
-            <div className="p-3 bg-white rounded-xl">
-              <QrCode className="w-20 h-20 text-zinc-950" />
-            </div>
-            <div className="text-left space-y-1">
-              <span className="text-[10px] uppercase font-extrabold text-emerald-400 block">Scan to Chat</span>
-              <span className="text-sm font-bold text-white block">+91 98480 12345</span>
-              <span className="text-xs text-zinc-400 block">GHMC WhatsApp Bot</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Hyderabad Verified Resident Stories Section */}
       <section id="stories" className="py-20 bg-zinc-900/40 border-y border-zinc-800/60 px-4 sm:px-6 lg:px-8">

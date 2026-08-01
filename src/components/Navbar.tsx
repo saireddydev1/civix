@@ -4,7 +4,7 @@ import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
 import { auth, signOut, db, doc, updateDoc } from '../firebase';
 import { DEPARTMENTS } from '../constants';
-import { ShieldCheck, LogOut, Menu, X, Plus, BarChart3, User as UserIcon, Languages, Map as MapIcon, ChevronDown, Building2, User, RefreshCw, Trophy, Home } from 'lucide-react';
+import { ShieldCheck, LogOut, Menu, X, Plus, BarChart3, User as UserIcon, Languages, Map as MapIcon, ChevronDown, Building2, User, RefreshCw, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import LiveBulletin from './LiveBulletin';
 
@@ -70,9 +70,6 @@ export const Navbar = () => {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-6 text-sm font-semibold">
-              <Link to="/welcome" className="flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 transition-colors">
-                <Home className="w-4 h-4 text-emerald-400" /> Home
-              </Link>
               <Link to="/feed" className="text-slate-300 hover:text-emerald-400 transition-colors">{t('feed')}</Link>
               <Link to="/report" className="flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 transition-colors">
                 <Plus className="w-4 h-4 text-emerald-400" /> {t('reportIssue')}
@@ -156,7 +153,6 @@ export const Navbar = () => {
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden bg-slate-900 border-t border-slate-800 px-4 py-4 space-y-4 text-slate-200"
             >
-              <Link to="/welcome" onClick={() => setIsOpen(false)} className="block text-slate-300">Home Landing</Link>
               <Link to="/feed" onClick={() => setIsOpen(false)} className="block text-slate-300">{t('feed')}</Link>
               <Link to="/report" onClick={() => setIsOpen(false)} className="block text-slate-300">{t('reportIssue')}</Link>
               <Link to="/map" onClick={() => setIsOpen(false)} className="block text-slate-300">{t('map')}</Link>
