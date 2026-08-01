@@ -27,12 +27,13 @@ const AppContent = () => {
 
   if (loading) return <div className="flex items-center justify-center h-screen bg-slate-950"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>;
 
-  const isPublicLanding = location.pathname === '/welcome' || location.pathname === '/landing';
+  const isAuthenticated = Boolean(user && profile);
+  const isPublicLanding = !isAuthenticated || location.pathname === '/welcome' || location.pathname === '/landing';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between">
       <div>
-        {user && profile && !isPublicLanding && <Navbar />}
+        {isAuthenticated && !isPublicLanding && <Navbar />}
         <main className={isPublicLanding ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
           <Routes>
             <Route path="/welcome" element={<LandingPage />} />
@@ -41,9 +42,17 @@ const AppContent = () => {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/contact" element={<ContactUs />} />
-            {!user || !profile ? (
+            {!isAuthenticated ? (
               <>
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/feed" element={<Navigate to="/login" replace />} />
+                <Route path="/report" element={<Navigate to="/login" replace />} />
+                <Route path="/map" element={<Navigate to="/login" replace />} />
+                <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+                <Route path="/analytics" element={<Navigate to="/login" replace />} />
+                <Route path="/leaderboard" element={<Navigate to="/login" replace />} />
+                <Route path="/department" element={<Navigate to="/login" replace />} />
                 <Route path="*" element={<LandingPage />} />
               </>
             ) : (
@@ -56,7 +65,7 @@ const AppContent = () => {
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/department" element={<DepartmentDashboard />} />
-                <Route path="*" element={<Navigate to="/" />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </>
             )}
           </Routes>

@@ -9,18 +9,20 @@ export const LiveBulletin = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="text-emerald-400 font-extrabold uppercase tracking-wider text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">LIVE CITY BULLETIN</span>
+          <span className="text-emerald-400 font-extrabold uppercase tracking-wider text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">GHMC DRF TELEMETRY</span>
+          <span className="hidden sm:inline-block text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">📞 GHMC Helpline: 040-21111111</span>
         </div>
 
         <div className="overflow-hidden relative w-full">
           <motion.div
             animate={{ x: ["100%", "-100%"] }}
-            transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
-            className="whitespace-nowrap flex items-center gap-8 text-slate-300 font-medium"
+            transition={{ repeat: Infinity, duration: 24, ease: "linear" }}
+            className="whitespace-nowrap flex items-center gap-8 text-slate-300 font-medium text-xs"
           >
-            <span>🚨 <strong>GHMC Alert:</strong> Automated pothole & drainage repair teams dispatched across Kukatpally & Banjara Hills.</span>
-            <span>⚡ <strong>TSSPDCL Notice:</strong> Power restoration complete in Madhapur sector 4 (SLA &lt; 14 Mins).</span>
-            <span>💧 <strong>HMWSSB Update:</strong> Water pipeline pressure monitoring active in Jubilee Hills Zone 2.</span>
+            <span>🌧️ <strong>GHMC Monsoon Alert:</strong> 48 DRF Emergency Teams deployed active across Serilingampally, Khairatabad & Charminar zones.</span>
+            <span>🚨 <strong>Pothole Repairs:</strong> Emergency asphalt patching teams active on Durgam Cheruvu Cable Bridge & Cyber Towers road.</span>
+            <span>⚡ <strong>TSSPDCL Notice:</strong> 100% power grid uptime maintained in HITEC City & Gachibowli circles.</span>
+            <span>💧 <strong>HMWSSB Update:</strong> Drinking water quality telemetry verified normal across 150 GHMC Wards.</span>
           </motion.div>
         </div>
       </div>

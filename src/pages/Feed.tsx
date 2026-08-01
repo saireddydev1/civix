@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { db, collection, query, onSnapshot, auth, googleProvider, signInWithPopup, doc, updateDoc, increment, setDoc, deleteDoc, getDoc, addDoc, serverTimestamp, writeBatch } from '../firebase';
-import { MapPin, Clock, CheckCircle2, AlertCircle, MessageSquare, ThumbsUp, Sparkles, BarChart3, Bot, Send, X, Camera, User, Loader2, Edit2 } from 'lucide-react';
+import { MapPin, Clock, CheckCircle2, AlertCircle, MessageSquare, ThumbsUp, Sparkles, BarChart3, Bot, Send, X, Camera, User, Loader2, Edit2, Building2, PhoneCall } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
+import { GHMC_ZONES } from '../constants';
 
 import BeforeAfterComparison from '../components/BeforeAfterComparison';
 
@@ -21,6 +22,7 @@ export default function Feed() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [editingIssue, setEditingIssue] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
+  const [selectedZone, setSelectedZone] = useState('all');
   const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
@@ -141,8 +143,16 @@ export default function Feed() {
   };
 
   const filteredIssues = issues.filter(issue => {
-    if (filter === 'all') return true;
-    return issue.status === filter;
+    if (filter !== 'all' && issue.status !== filter) return false;
+    if (selectedZone !== 'all') {
+      const zone = GHMC_ZONES.find(z => z.id === selectedZone);
+      if (zone && issue.location?.address) {
+        const addr = issue.location.address.toLowerCase();
+        const keywords = zone.circles.toLowerCase().split(', ');
+        return keywords.some(kw => addr.includes(kw));
+      }
+    }
+    return true;
   });
 
   if (loading) return <div className="flex justify-center py-12">{t('loading')}</div>;
@@ -224,6 +234,32 @@ export default function Feed() {
                 }`}
             >
               {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* GHMC Zone Filter Chips Bar */}
+      <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl flex flex-col gap-3 backdrop-blur-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            <Building2 className="w-4 h-4 text-emerald-400" />
+            <span>GHMC 6-Zone Filter</span>
+          </div>
+          <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Select your Hyderabad zone to filter local civic issues</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {GHMC_ZONES.map((zone) => (
+            <button
+              key={zone.id}
+              onClick={() => setSelectedZone(zone.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                selectedZone === zone.id
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
+                  : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
+              }`}
+            >
+              {zone.name}
             </button>
           ))}
         </div>
