@@ -398,11 +398,10 @@ export default function Login() {
                       <button
                         key={preset.id}
                         onClick={() => setSelectedPresetId(preset.id)}
-                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all ${
-                          selectedPresetId === preset.id
+                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all ${selectedPresetId === preset.id
                             ? 'bg-slate-800 border-emerald-500 text-white shadow-md'
                             : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                        }`}
+                          }`}
                       >
                         <preset.icon className={`w-4 h-4 shrink-0 ${preset.color}`} />
                         <span className="text-[11px] font-extrabold truncate">{preset.name}</span>
