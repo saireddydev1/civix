@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, collection, query, onSnapshot, auth, googleProvider, signInWithPopup, doc, updateDoc, increment, setDoc, deleteDoc, getDoc, addDoc, serverTimestamp, writeBatch } from '../firebase';
-import { MapPin, Clock, CheckCircle2, AlertCircle, MessageSquare, ThumbsUp, Sparkles, BarChart3, Bot, Send, X, Camera, User, Loader2, Edit2, Building2, PhoneCall } from 'lucide-react';
+import { MapPin, Clock, CheckCircle2, AlertCircle, MessageSquare, ThumbsUp, Sparkles, BarChart3, Bot, Send, X, Camera, User, Loader2, Edit2, Building2, PhoneCall, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../AuthContext';
@@ -10,6 +10,7 @@ import { GHMC_ZONES } from '../constants';
 
 import BeforeAfterComparison from '../components/BeforeAfterComparison';
 import { getValidImageUrl, DEFAULT_CIVIC_IMAGE } from '../utils/imageUtils';
+import { openGoogleMapsNavigation, formatLocationText } from '../utils/locationUtils';
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function Feed() {
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [editingIssue, setEditingIssue] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({ title: '', description: '' });
+  const [editFormData, setEditFormData] = useState({ title: '', description: '', locationAddress: '' });
   const [selectedZone, setSelectedZone] = useState('all');
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -134,6 +135,7 @@ export default function Feed() {
       await updateDoc(doc(db, 'issues', editingIssue.id), {
         title: editFormData.title.trim(),
         description: editFormData.description.trim(),
+        'location.address': editFormData.locationAddress.trim() || editingIssue.location?.address || 'Madhapur, Hyderabad',
         updatedAt: serverTimestamp()
       });
       setEditingIssue(null);
@@ -142,6 +144,21 @@ export default function Feed() {
       alert("Failed to update issue. Please check your permissions.");
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteIssue = async (issueId: string) => {
+    if (!window.confirm("Are you sure you want to delete this reported issue? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'issues', issueId));
+      if (editingIssue?.id === issueId) {
+        setEditingIssue(null);
+      }
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Failed to delete issue. Please try again.");
     }
   };
 
@@ -330,26 +347,58 @@ export default function Feed() {
               <div className="relative">
                 <div className="flex justify-between items-start gap-2">
                   <h3 className="text-lg font-bold text-white leading-snug flex-1">{issue.title}</h3>
-                  {user && issue.reporterUid === user.uid && issue.status === 'open' && (
-                    <button
-                      onClick={() => {
-                        setEditingIssue(issue);
-                        setEditFormData({ title: issue.title, description: issue.description });
-                      }}
-                      className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-emerald-400 transition-colors"
-                      title="Edit Issue"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+                  {user && ((issue.reporterUid && issue.reporterUid === user.uid) || (issue.reporterName && profile?.displayName && issue.reporterName.trim().toLowerCase() === profile.displayName.trim().toLowerCase())) && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingIssue(issue);
+                          setEditFormData({
+                            title: issue.title || '',
+                            description: issue.description || '',
+                            locationAddress: issue.location?.address || ''
+                          });
+                        }}
+                        className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-emerald-400 transition-colors"
+                        title="Edit Issue"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteIssue(issue.id);
+                        }}
+                        className="p-1.5 hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                        title="Delete Issue"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
                 <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">{issue.description}</p>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="truncate">{issue.location?.address || 'Uppal, Hyderabad'}</span>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openGoogleMapsNavigation(issue.location);
+                }}
+                title="Click to open Navigation in Google Maps"
+                className="w-full flex items-center justify-between gap-2 text-xs text-slate-300 hover:text-emerald-400 font-medium transition-all group/loc cursor-pointer text-left bg-slate-950/80 hover:bg-emerald-500/10 px-3 py-2 rounded-xl border border-slate-800 hover:border-emerald-500/40"
+              >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 group-hover/loc:scale-110 transition-transform" />
+                  <span className="truncate">{formatLocationText(issue.location)}</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0 flex items-center gap-1 group-hover/loc:bg-emerald-500 group-hover/loc:text-slate-950 transition-colors">
+                  Navigate ↗
+                </span>
+              </button>
 
               <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -518,8 +567,27 @@ export default function Feed() {
                     className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none text-sm font-medium"
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Location / Area Address</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.locationAddress}
+                    onChange={(e) => setEditFormData({ ...editFormData, locationAddress: e.target.value })}
+                    placeholder="e.g. Madhapur, Hyderabad"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-medium"
+                  />
+                </div>
 
                 <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteIssue(editingIssue.id)}
+                    className="py-3 px-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-colors text-xs flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setEditingIssue(null)}

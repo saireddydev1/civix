@@ -9,6 +9,7 @@ import { DEPARTMENTS, ISSUE_CATEGORIES } from '../constants';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { compressAndConvertToDataUrl } from '../utils/imageUtils';
 import { deriveDisplayName } from '../utils/nameUtils';
+import { getNearestHyderabadArea } from '../utils/locationUtils';
 
 const mapContainerStyle = {
   width: '100%',
@@ -206,9 +207,10 @@ export default function ReportIssue() {
   }, []);
 
   const reverseGeocode = useCallback((lat: number, lng: number) => {
+    const areaName = getNearestHyderabadArea(lat, lng);
     setFormData(prev => ({
       ...prev,
-      location: { ...prev.location, lat, lng, address: `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})` }
+      location: { ...prev.location, lat, lng, address: areaName }
     }));
 
     if (window.google?.maps?.Geocoder) {
@@ -222,13 +224,17 @@ export default function ReportIssue() {
         }
       });
     } else {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.display_name) {
+          if (data && data.address) {
+            const addr = data.address;
+            const local = addr.suburb || addr.neighbourhood || addr.residential || addr.road || addr.quarter || addr.subdistrict;
+            const city = addr.city || addr.town || addr.county || 'Hyderabad';
+            const cleanArea = local ? `${local}, ${city}` : (data.display_name?.split(',').slice(0, 2).join(',') || areaName);
             setFormData(prev => ({
               ...prev,
-              location: { ...prev.location, lat, lng, address: data.display_name }
+              location: { ...prev.location, lat, lng, address: cleanArea }
             }));
           }
         })

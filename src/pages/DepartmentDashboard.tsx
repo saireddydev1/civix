@@ -6,6 +6,7 @@ import { Building2, CheckCircle2, Clock, AlertCircle, Image as ImageIcon, Loader
 import { motion, AnimatePresence } from 'motion/react';
 import BeforeAfterComparison from '../components/BeforeAfterComparison';
 import { compressAndConvertToDataUrl, getValidImageUrl, DEFAULT_CIVIC_IMAGE } from '../utils/imageUtils';
+import { openGoogleMapsNavigation, formatLocationText } from '../utils/locationUtils';
 
 const OFFICIAL_EMAILS = [
   'municipal@civix.gov.in',
@@ -251,9 +252,19 @@ export default function DepartmentDashboard() {
                   </span>
                 </div>
                 <p className="text-slate-300 text-sm leading-relaxed">{issue.description}</p>
-                <div className="flex items-center gap-4 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
                   <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-slate-500" /> Reported recently</span>
                   <span className="flex items-center gap-1 text-amber-400 font-bold"><AlertCircle className="w-3.5 h-3.5" /> Priority: High</span>
+                  <button
+                    type="button"
+                    onClick={() => openGoogleMapsNavigation(issue.location)}
+                    title="Click to open Navigation in Google Maps"
+                    className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold hover:underline cursor-pointer bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 hover:border-emerald-500/40 transition-all"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{formatLocationText(issue.location)}</span>
+                    <span className="text-[10px] bg-emerald-500/20 px-1 rounded font-mono">Navigate ↗</span>
+                  </button>
                 </div>
               </div>
               <div className="flex flex-col gap-2.5 w-full md:w-auto shrink-0">

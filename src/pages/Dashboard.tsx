@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { db, collection, query, onSnapshot, where, doc, updateDoc, serverTimestamp } from '../firebase';
+import { db, collection, query, onSnapshot, where, doc, updateDoc, deleteDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
-import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, Edit2, X, Loader2 } from 'lucide-react';
+import { User, Mail, Shield, Clock, CheckCircle2, AlertCircle, Building2, Truck, Zap, Droplets, GraduationCap, Edit2, X, Loader2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -11,7 +11,7 @@ export default function Dashboard() {
   const [myIssues, setMyIssues] = useState<any[]>([]);
 
   const [editingIssue, setEditingIssue] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({ title: '', description: '' });
+  const [editFormData, setEditFormData] = useState({ title: '', description: '', locationAddress: '' });
   const [savingEdit, setSavingEdit] = useState(false);
 
   if (profile?.role === 'official' || profile?.role === 'admin') {
@@ -38,6 +38,7 @@ export default function Dashboard() {
       await updateDoc(doc(db, 'issues', editingIssue.id), {
         title: editFormData.title.trim(),
         description: editFormData.description.trim(),
+        'location.address': editFormData.locationAddress.trim() || editingIssue.location?.address || 'Madhapur, Hyderabad',
         updatedAt: serverTimestamp()
       });
       setEditingIssue(null);
@@ -46,6 +47,20 @@ export default function Dashboard() {
       alert("Failed to update issue. Please check your permissions.");
     } finally {
       setSavingEdit(false);
+    }
+  };
+  const handleDeleteIssue = async (issueId: string) => {
+    if (!window.confirm("Are you sure you want to delete this reported issue? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'issues', issueId));
+      if (editingIssue?.id === issueId) {
+        setEditingIssue(null);
+      }
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Failed to delete issue. Please try again.");
     }
   };
 
@@ -161,18 +176,29 @@ export default function Dashboard() {
                     {issue.createdAt ? format(issue.createdAt.toDate(), 'MMM d, yyyy') : '...'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {issue.status === 'open' && (
+                    <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => {
                           setEditingIssue(issue);
-                          setEditFormData({ title: issue.title, description: issue.description });
+                          setEditFormData({
+                            title: issue.title || '',
+                            description: issue.description || '',
+                            locationAddress: issue.location?.address || ''
+                          });
                         }}
                         className="p-2 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 rounded-lg transition-all"
                         title="Edit Issue"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                    )}
+                      <button
+                        onClick={() => handleDeleteIssue(issue.id)}
+                        className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-all"
+                        title="Delete Issue"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -203,7 +229,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-800"
             >
               <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold">Edit Issue</h3>
@@ -236,19 +262,38 @@ export default function Dashboard() {
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Location / Area Address</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.locationAddress}
+                    onChange={(e) => setEditFormData({ ...editFormData, locationAddress: e.target.value })}
+                    placeholder="e.g. Madhapur, Hyderabad"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  />
+                </div>
 
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
+                    onClick={() => handleDeleteIssue(editingIssue.id)}
+                    className="py-3 px-4 bg-red-50 border border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-colors text-xs flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setEditingIssue(null)}
-                    className="flex-1 py-3 border border-zinc-200 rounded-xl font-bold text-zinc-600 hover:bg-zinc-50 transition-colors"
+                    className="flex-1 py-3 border border-zinc-200 rounded-xl font-bold text-zinc-600 hover:bg-zinc-50 transition-colors text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={savingEdit || !editFormData.title.trim() || !editFormData.description.trim()}
-                    className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-xs"
                   >
                     {savingEdit ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
                   </button>
