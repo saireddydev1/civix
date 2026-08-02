@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { DEPARTMENTS, ISSUE_CATEGORIES } from '../constants';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { compressAndConvertToDataUrl } from '../utils/imageUtils';
+import { deriveDisplayName } from '../utils/nameUtils';
 
 const mapContainerStyle = {
   width: '100%',
@@ -145,7 +146,7 @@ const LeafletPickerMap = ({
 };
 
 export default function ReportIssue() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -276,12 +277,15 @@ export default function ReportIssue() {
     }
     setLoading(true);
     try {
+      const reporterCleanName = profile?.displayName || deriveDisplayName(user?.displayName, user?.email);
+      const reporterAvatar = profile?.photoUrl || user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(reporterCleanName)}&background=10b981&color=fff`;
+
       await addDoc(collection(db, 'issues'), {
         ...formData,
         status: 'open',
         reporterUid: user.uid,
-        reporterName: user.displayName,
-        reporterPhotoUrl: user.photoURL,
+        reporterName: reporterCleanName,
+        reporterPhotoUrl: reporterAvatar,
         likesCount: 0,
         commentsCount: 0,
         createdAt: serverTimestamp(),

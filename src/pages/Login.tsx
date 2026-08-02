@@ -14,6 +14,7 @@ import {
 } from '../firebase';
 import { useLanguage } from '../LanguageContext';
 import { useAuth } from '../AuthContext';
+import { deriveDisplayName } from '../utils/nameUtils';
 import {
   ShieldCheck,
   User,
@@ -72,11 +73,16 @@ export default function Login() {
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
+      
+      const cleanName = (nameOverride && nameOverride.trim() !== '' && nameOverride !== 'Civic User')
+        ? nameOverride.trim()
+        : deriveDisplayName(user.displayName, user.email);
+
       if (!userDoc.exists()) {
         profileData = {
-          displayName: nameOverride || user.displayName || 'Civic User',
+          displayName: cleanName,
           email: user.email,
-          photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameOverride || user.displayName || 'User')}&background=10b981&color=fff`,
+          photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=10b981&color=fff`,
           role: portalType === 'citizen' ? 'citizen' : (activePreset?.role || 'official'),
           departmentId: portalType === 'citizen' ? null : (activePreset?.deptId || 'municipal'),
           updatedAt: new Date().toISOString(),
@@ -84,7 +90,24 @@ export default function Login() {
         };
         await setDoc(userDocRef, profileData, { merge: true });
       } else {
-        profileData = userDoc.data();
+        const existing = userDoc.data();
+        const finalName = (nameOverride && nameOverride.trim() !== '' && nameOverride !== 'Civic User')
+          ? nameOverride.trim()
+          : deriveDisplayName(existing.displayName || user.displayName, user.email);
+        
+        profileData = {
+          ...existing,
+          displayName: finalName,
+          photoUrl: existing.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(finalName)}&background=10b981&color=fff`
+        };
+
+        if (existing.displayName !== finalName) {
+          await setDoc(userDocRef, {
+            displayName: finalName,
+            photoUrl: profileData.photoUrl,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
       }
       if (profileData) {
         setProfile(profileData);

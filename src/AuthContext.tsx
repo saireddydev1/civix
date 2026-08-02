@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { auth, onAuthStateChanged, db, doc, getDoc } from './firebase';
+import { deriveDisplayName } from './utils/nameUtils';
 
 interface AuthContextType {
   user: any;
@@ -27,20 +28,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
-            setProfile(userDoc.data());
+            const data = userDoc.data();
+            const cleanName = deriveDisplayName(data.displayName, data.email || currentUser.email);
+            setProfile({ ...data, displayName: cleanName });
           } else {
+            const cleanName = deriveDisplayName(currentUser.displayName, currentUser.email);
             setProfile({
-              displayName: currentUser.displayName || 'Civic User',
+              displayName: cleanName,
               email: currentUser.email,
-              photoUrl: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=10b981&color=fff`,
+              photoUrl: currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=10b981&color=fff`,
               role: 'citizen',
               departmentId: null
             });
           }
         } catch (err) {
           console.error("Error fetching user profile from Firestore:", err);
+          const cleanName = deriveDisplayName(currentUser.displayName, currentUser.email);
           setProfile({
-            displayName: currentUser.displayName || 'Civic User',
+            displayName: cleanName,
             email: currentUser.email,
             role: 'citizen',
             departmentId: null
