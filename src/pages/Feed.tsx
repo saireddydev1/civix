@@ -268,8 +268,26 @@ export default function Feed() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredIssues.map((issue) => (
+      {filteredIssues.length === 0 ? (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-xl mx-auto backdrop-blur-xl">
+          <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto text-emerald-400">
+            <Camera className="w-8 h-8" />
+          </div>
+          <h3 className="text-xl font-bold text-white">No Civic Complaints Reported Yet</h3>
+          <p className="text-sm text-slate-400">
+            Be the first citizen to report a civic issue in your area and track its resolution in real-time.
+          </p>
+          <button
+            onClick={() => navigate('/report')}
+            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
+          >
+            <Sparkles className="w-4 h-4" />
+            Report First Issue
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredIssues.map((issue) => (
           <motion.div
             layout
             initial={{ opacity: 0, y: 20 }}
@@ -365,6 +383,7 @@ export default function Feed() {
           </motion.div>
         ))}
       </div>
+      )}
 
       {/* Comments Modal */}
       <AnimatePresence>

@@ -46,24 +46,24 @@ export default function Analytics() {
       const start = startOfMonth(date);
       const end = endOfMonth(date);
       const count = issues.filter(issue => {
-        const createdAt = issue.createdAt?.toDate();
+        const createdAt = issue.createdAt?.toDate ? issue.createdAt.toDate() : null;
         return createdAt && isWithinInterval(createdAt, { start, end });
       }).length;
       return {
         name: format(date, 'MMM'),
-        count: count || Math.floor(Math.random() * 15) + 5
+        count: count
       };
     }).reverse();
 
     const deptStats = DEPARTMENTS.map(dept => ({
       name: dept.name.split(' ')[0],
-      count: issues.filter(i => i.departmentId === dept.id).length || Math.floor(Math.random() * 8) + 2
+      count: issues.filter(i => i.departmentId === dept.id).length
     }));
 
     const resolutionData = [
-      { name: 'Resolved', value: issues.filter(i => i.status === 'resolved').length || 18, color: '#10b981' },
-      { name: 'In Progress', value: issues.filter(i => i.status === 'in-progress').length || 7, color: '#3b82f6' },
-      { name: 'Pending', value: issues.filter(i => i.status === 'open').length || 5, color: '#f59e0b' }
+      { name: 'Resolved', value: issues.filter(i => i.status === 'resolved').length, color: '#10b981' },
+      { name: 'In Progress', value: issues.filter(i => i.status === 'in-progress').length, color: '#3b82f6' },
+      { name: 'Pending', value: issues.filter(i => i.status === 'open').length, color: '#f59e0b' }
     ];
 
     return { last6Months, deptStats, resolutionData };
