@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ShieldCheck, 
-  Sparkles, 
-  ArrowRight, 
-  CheckCircle2, 
-  MapPin, 
-  Bot, 
-  BarChart3, 
-  Building2, 
-  Truck, 
-  Camera, 
+import {
+  ShieldCheck,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  MapPin,
+  Bot,
+  BarChart3,
+  Building2,
+  Truck,
+  Camera,
   PhoneCall,
   AlertCircle,
   Trash2,
@@ -24,6 +24,49 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../LanguageContext';
 import { useAuth } from '../AuthContext';
 import { GHMC_ZONES, GHMC_EMERGENCY_HELPLINES, GHMC_QUICK_ACTIONS } from '../constants';
+
+
+
+const RotatingTypeText = () => {
+  const phrases = [
+    "Agentic Intelligence",
+    "Instant AI Triage",
+    "GPS-Verified Repairs",
+    "150+ GHMC Wards",
+    "Swachh SAT Tracking"
+  ];
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [reverse, setReverse] = useState(false);
+
+  useEffect(() => {
+    if (subIndex === phrases[index].length + 1 && !reverse) {
+      const timeout = setTimeout(() => setReverse(true), 1800);
+      return () => clearTimeout(timeout);
+    }
+
+    if (subIndex === 0 && reverse) {
+      setReverse(false);
+      setIndex((prev) => (prev + 1) % phrases.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + (reverse ? -1 : 1));
+    }, reverse ? 45 : 85);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, reverse]);
+
+  return (
+    <span className="inline-block relative">
+      <span className="bg-gradient-to-r from-emerald-400 via-teal-300 via-cyan-400 via-emerald-300 to-emerald-400 bg-[length:250%_auto] animate-text-gradient bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(16,185,129,0.5)] font-black">
+        {phrases[index].substring(0, subIndex)}
+      </span>
+      <span className="inline-block w-1.5 h-10 sm:h-16 ml-1.5 bg-gradient-to-b from-emerald-400 to-cyan-400 rounded-full animate-pulse align-middle shadow-[0_0_15px_rgba(52,211,153,0.9)]" />
+    </span>
+  );
+};
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -137,7 +180,7 @@ export default function LandingPage() {
   ];
 
   const getQuickIcon = (cat: string) => {
-    switch(cat) {
+    switch (cat) {
       case 'pothole': return <AlertCircle className="w-6 h-6 text-amber-400" />;
       case 'drainage': return <Waves className="w-6 h-6 text-cyan-400" />;
       case 'garbage': return <Trash2 className="w-6 h-6 text-emerald-400" />;
@@ -150,8 +193,20 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-emerald-500 selection:text-zinc-950">
-      {/* Background Radial Glow */}
+      {/* Background Radial Glow & Floating Animated Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-emerald-500/20 via-teal-500/10 to-transparent blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{ y: [0, -40, 0], x: [0, 30, 0], scale: [1, 1.15, 1] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-28 left-12 w-80 h-80 bg-emerald-500/10 rounded-full blur-[110px]"
+        />
+        <motion.div
+          animate={{ y: [0, 50, 0], x: [0, -30, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute top-48 right-12 w-96 h-96 bg-cyan-500/10 rounded-full blur-[130px]"
+        />
+      </div>
 
       {/* GHMC Official Disaster Emergency Alert Bar */}
       <div className="bg-gradient-to-r from-emerald-950 via-zinc-900 to-emerald-950 border-b border-emerald-500/30 py-2.5 px-4 text-xs font-medium text-emerald-200">
@@ -180,8 +235,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/80 border-b border-zinc-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="h-10 px-2.5 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-500/30">
+              <img src="/logo.png" alt="CIVIX Logo" className="h-8 w-auto object-contain" />
             </div>
             <div>
               <span className="text-2xl font-black tracking-tight text-white">{t('appName')}</span>
@@ -200,7 +255,7 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-4">
             {user ? (
-              <button 
+              <button
                 onClick={() => navigate('/feed')}
                 className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/25 flex items-center gap-2"
               >
@@ -208,7 +263,7 @@ export default function LandingPage() {
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => navigate('/login')}
                 className="bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
               >
@@ -222,7 +277,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative pt-16 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -232,16 +287,16 @@ export default function LandingPage() {
           <span>Greater Hyderabad Municipal Corporation (GHMC) Autonomous Platform</span>
         </motion.div>
 
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-[1.05] max-w-5xl mx-auto"
         >
-          Transforming Hyderabad with <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Agentic Intelligence</span>
+          Transforming Hyderabad with <br /> <RotatingTypeText />
         </motion.h1>
 
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -250,20 +305,20 @@ export default function LandingPage() {
           Report potholes, waterlogging, waste dumps, and streetlight breakdowns instantly across 6 GHMC zones & 150 wards. AI agents auto-route directly to field squads with verified proof-of-work.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <button 
+          <button
             onClick={() => handleAction('/report')}
             className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-8 py-4 rounded-2xl font-extrabold text-lg transition-all shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 group"
           >
             <span>Report Issue to GHMC</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
-          <button 
+          <button
             onClick={() => handleAction('/map')}
             className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 px-8 py-4 rounded-2xl font-extrabold text-lg transition-all flex items-center justify-center gap-3"
           >
@@ -273,7 +328,7 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Live Hero Stats Bar */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
@@ -350,7 +405,7 @@ export default function LandingPage() {
             <p className="text-zinc-300 text-sm sm:text-base leading-relaxed max-w-4xl">
               GHMC deploys micro-pocket waste collection vehicles equipped with GPS telemetry across all 150 wards for 100% door-to-door waste segregation.
             </p>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
               <div className="bg-zinc-950/80 p-5 rounded-2xl border border-zinc-800">
                 <span className="text-[10px] uppercase font-extrabold text-zinc-500 block">Morning Shift</span>
@@ -389,11 +444,10 @@ export default function LandingPage() {
             <button
               key={zone.id}
               onClick={() => setActiveZoneId(zone.id)}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all border ${
-                activeZoneId === zone.id
+              className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all border ${activeZoneId === zone.id
                   ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-lg shadow-emerald-500/25 scale-105'
                   : 'bg-zinc-900/80 text-zinc-300 border-zinc-800 hover:border-zinc-700 hover:text-white'
-              }`}
+                }`}
             >
               {zone.name}
             </button>
@@ -439,7 +493,7 @@ export default function LandingPage() {
               <h4 className="text-xl font-extrabold text-white mt-1">Found a breakdown in {selectedZoneData.name}?</h4>
               <p className="text-xs text-zinc-400 mt-2">Submit a geo-tagged complaint directly to the zone officer.</p>
             </div>
-            <button 
+            <button
               onClick={() => handleAction('/report')}
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 py-3 rounded-xl font-black text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
             >
@@ -515,7 +569,7 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feat, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               whileHover={{ y: -6 }}
               className="bg-zinc-900/80 border border-zinc-800 p-8 rounded-3xl relative overflow-hidden group hover:border-emerald-500/50 transition-colors"
@@ -594,7 +648,7 @@ export default function LandingPage() {
               Every verified complaint reported and confirmed earns citizens Karma points. Meet this week's top active contributors keeping Hyderabad clean and safe.
             </p>
             <div className="pt-2">
-              <button 
+              <button
                 onClick={() => handleAction('/leaderboard')}
                 className="bg-zinc-900 border border-zinc-700 hover:border-emerald-500 text-white px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2"
               >
@@ -607,16 +661,15 @@ export default function LandingPage() {
           {/* Top 3 Champions Cards */}
           <div className="space-y-4">
             {topCitizens.map((citizen, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-zinc-900/80 border border-zinc-800 p-5 rounded-2xl flex items-center justify-between hover:border-emerald-500/40 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
-                    index === 0 ? 'bg-amber-500 text-zinc-950' :
-                    index === 1 ? 'bg-zinc-300 text-zinc-950' :
-                    'bg-amber-700 text-white'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${index === 0 ? 'bg-amber-500 text-zinc-950' :
+                      index === 1 ? 'bg-zinc-300 text-zinc-950' :
+                        'bg-amber-700 text-white'
+                    }`}>
                     #{index + 1}
                   </div>
                   <div>
@@ -653,7 +706,7 @@ export default function LandingPage() {
 
         <div className="space-y-4">
           {ghmcFaqs.map((faq, index) => (
-            <div 
+            <div
               key={index}
               className="bg-zinc-900/80 border border-zinc-800 rounded-2xl overflow-hidden transition-all"
             >

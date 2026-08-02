@@ -10,8 +10,8 @@ export const Footer = () => {
           {/* Brand Col */}
           <div className="md:col-span-2 space-y-4">
             <Link to="/feed" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <ShieldCheck className="text-slate-950 w-4 h-4 font-bold" />
+              <div className="h-8 px-2 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 border border-emerald-500/30">
+                <img src="/logo.png" alt="CIVIX Logo" className="h-6 w-auto object-contain" />
               </div>
               <span className="text-lg font-black tracking-tight text-white">Civix</span>
             </Link>

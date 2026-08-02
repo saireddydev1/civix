@@ -50,6 +50,23 @@
   box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.15);
 }
 
+@keyframes textGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-text-gradient {
+  background-size: 250% auto;
+  animation: textGradient 5s linear infinite;
+}
+
 .glass-nav {
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(20px);

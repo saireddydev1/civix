@@ -20,6 +20,7 @@ import ContactUs from './pages/ContactUs';
 import { Navbar } from './components/Navbar';
 import Footer from './components/Footer';
 import AICopilot from './components/AICopilot';
+import AnimatedBackground from './components/AnimatedBackground';
 
 const AppContent = () => {
   const { user, profile, loading } = useAuth();
@@ -31,7 +32,9 @@ const AppContent = () => {
   const isPublicLanding = !isAuthenticated || location.pathname === '/home' || location.pathname === '/welcome' || location.pathname === '/landing';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between">
+    <div className="relative min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between overflow-x-hidden">
+      <AnimatedBackground />
+      <div className="relative z-10 flex flex-col min-h-screen justify-between">
       <div>
         {isAuthenticated && !isPublicLanding && <Navbar />}
         <main className={isPublicLanding ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
@@ -76,6 +79,7 @@ const AppContent = () => {
       {/* Global Footer & AI Copilot Assistant */}
       <Footer />
       <AICopilot />
+      </div>
     </div>
   );
 };

@@ -266,9 +266,9 @@ export default function Login() {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-16 h-16 bg-emerald-500/20 border border-emerald-500/40 rounded-3xl flex items-center justify-center mx-auto mb-3 shadow-2xl backdrop-blur-md text-emerald-400"
+            className="w-20 h-20 bg-white border border-emerald-500/40 rounded-3xl flex items-center justify-center mx-auto mb-3 shadow-2xl p-2.5"
           >
-            <ShieldCheck className="w-10 h-10" />
+            <img src="/logo.png" alt="CIVIX Logo" className="w-full h-full object-contain" />
           </motion.div>
           <h1 className="text-4xl font-black tracking-tight text-white">{t('appName')}</h1>
           <p className="text-slate-400 text-xs font-medium mt-1">{t('tagline')}</p>
