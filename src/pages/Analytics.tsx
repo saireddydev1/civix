@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { db, collection, onSnapshot } from '../firebase';
 import { useAuth } from '../AuthContext';
-import { agenticIntelligence } from '../gemini';
-import { Bot, Send, Loader2, BarChart3, TrendingUp, AlertTriangle, Map as MapIcon, Sparkles, PieChart as PieIcon, Calendar, Activity, Zap, ShieldCheck } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { BarChart3, TrendingUp, AlertTriangle, Map as MapIcon, PieChart as PieIcon, Calendar, Activity, Zap, ShieldCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { DEPARTMENTS } from '../constants';
 
 export default function Analytics() {
   const { profile } = useAuth();
-  const [queryText, setQueryText] = useState('');
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
   const [issues, setIssues] = useState<any[]>([]);
 
   useEffect(() => {
@@ -24,20 +19,6 @@ export default function Analytics() {
     });
     return unsubscribe;
   }, [profile]);
-
-  const handleQuery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!queryText) return;
-    setLoading(true);
-    try {
-      const result = await agenticIntelligence(queryText, issues);
-      setResponse(result);
-    } catch (error) {
-      console.error("AI Engine failed", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -74,11 +55,11 @@ export default function Analytics() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <Bot className="text-slate-950 w-7 h-7 font-bold" />
+            <BarChart3 className="text-slate-950 w-7 h-7 font-bold" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Agentic Intelligence Engine</h1>
-            <p className="text-slate-400 text-xs mt-0.5">Autonomous city-wide telemetry, predictive triage & SLA analytics.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">City Telemetry & Analytics</h1>
+            <p className="text-slate-400 text-xs mt-0.5">Real-time municipal issue resolution, department SLAs & monthly trends.</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -91,47 +72,6 @@ export default function Analytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* AI Query Section */}
-          <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 shadow-2xl">
-            <h3 className="text-base font-extrabold mb-4 flex items-center gap-2 text-white">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
-              City AI Intelligence Query
-            </h3>
-            <form onSubmit={handleQuery} className="relative">
-              <input
-                type="text"
-                placeholder="Ask AI about hotspot trends, response latency, or department SLA stats..."
-                className="w-full pl-5 pr-14 py-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-white placeholder:text-slate-500"
-                value={queryText}
-                onChange={(e) => setQueryText(e.target.value)}
-              />
-              <button 
-                type="submit"
-                disabled={loading}
-                className="absolute right-2.5 top-2.5 w-10 h-10 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center hover:bg-emerald-400 transition-all font-bold disabled:opacity-50 shadow-md shadow-emerald-500/20"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-              </button>
-            </form>
-            
-            <AnimatePresence mode="wait">
-              {response && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-6 bg-slate-950/90 p-6 rounded-2xl border border-emerald-500/30 leading-relaxed whitespace-pre-wrap font-mono text-xs text-slate-300"
-                >
-                  <div className="flex items-center gap-2 mb-3 text-emerald-400 font-extrabold uppercase tracking-widest text-[10px]">
-                    <Activity className="w-3.5 h-3.5" />
-                    AI Intelligence Synthesis
-                  </div>
-                  {response}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {/* Charts Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-2xl">
