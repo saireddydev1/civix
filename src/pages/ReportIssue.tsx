@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db, collection, addDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../AuthContext';
 import { useLanguage } from '../LanguageContext';
-import { Camera, MapPin, Send, Loader2, CheckCircle2, Video, Truck, Zap, Droplets, GraduationCap, Building2, HeartPulse, X, Upload, AlertCircle, Trash2, Waves, Sun, MoreHorizontal, Scan, Target, Cpu } from 'lucide-react';
+import { Camera, MapPin, Send, Loader2, CheckCircle2, Video, Truck, Zap, Droplets, GraduationCap, Building2, HeartPulse, X, Upload, AlertCircle, Trash2, Waves, Sun, MoreHorizontal, Scan, Target, Cpu, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DEPARTMENTS, ISSUE_CATEGORIES } from '../constants';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
@@ -320,11 +320,18 @@ export default function ReportIssue() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">{t('reportIssue')}</h1>
-          <p className="text-slate-400 text-sm mt-1">Submit civic complaints directly to municipal governance for automated AI routing.</p>
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-500/30 rounded-3xl p-8 shadow-2xl space-y-3 backdrop-blur-2xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-widest">
+          <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+          Official Smart City Triage • Earn +10 Civic Coins
         </div>
+        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+          Report <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Civic Issue</span>
+        </h1>
+        <p className="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+          Submit urban infrastructure complaints directly to municipal governance. Automated AI routing geo-tags your issue for rapid field officer dispatch.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-8 text-slate-100">

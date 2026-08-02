@@ -260,28 +260,55 @@ export default function Feed() {
       </div>
 
       {/* GHMC Zone Filter Chips Bar */}
-      <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-2xl flex flex-col gap-3 backdrop-blur-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-            <Building2 className="w-4 h-4 text-emerald-400" />
-            <span>GHMC 6-Zone Filter</span>
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-950/90 border border-emerald-500/30 p-5 rounded-3xl backdrop-blur-2xl shadow-xl space-y-3.5">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400">
+              <Building2 className="w-4 h-4 text-emerald-400 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-white tracking-wide uppercase">GHMC Zonal Filter</h3>
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
+                  HYDERABAD 6-ZONES
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">Select your GHMC circle zone to filter verified civic complaints</p>
+            </div>
           </div>
-          <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Select your Hyderabad zone to filter local civic issues</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {GHMC_ZONES.map((zone) => (
+          {selectedZone !== 'all' && (
             <button
-              key={zone.id}
-              onClick={() => setSelectedZone(zone.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                selectedZone === zone.id
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md'
-                  : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
-              }`}
+              onClick={() => setSelectedZone('all')}
+              className="text-[11px] text-emerald-400 hover:text-emerald-300 font-bold underline flex items-center gap-1 self-start sm:self-auto"
             >
-              {zone.name}
+              Reset Zone Filter
             </button>
-          ))}
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          {GHMC_ZONES.map((zone) => {
+            const isSelected = selectedZone === zone.id;
+            return (
+              <button
+                key={zone.id}
+                onClick={() => setSelectedZone(zone.id)}
+                className={`relative px-3.5 py-2 rounded-xl text-xs transition-all duration-200 flex items-center gap-2 border ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 text-slate-950 border-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.45)] scale-105 font-black ring-2 ring-emerald-400/40'
+                    : 'bg-slate-950/80 text-slate-300 border-slate-800 hover:border-emerald-500/40 hover:text-emerald-400 hover:bg-slate-900/90 hover:scale-[1.02] font-semibold'
+                }`}
+              >
+                {isSelected ? (
+                  <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping shrink-0" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0" />
+                )}
+                <span>{zone.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
