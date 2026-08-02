@@ -3,6 +3,7 @@ import { db, collection, query, onSnapshot, getDocs } from '../firebase';
 import { Award, Trophy, Sparkles, Shield, User, Flame, ArrowUpRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
+import { deriveDisplayName } from '../utils/nameUtils';
 
 export default function Leaderboard() {
   const { user, profile } = useAuth();
@@ -50,10 +51,12 @@ export default function Leaderboard() {
             else if (karma >= 250) badge = 'City Guardian';
             else if (karma >= 100) badge = 'Active Citizen';
 
+            const cleanName = deriveDisplayName(data.displayName, data.email);
+
             return {
               id: uid,
-              name: data.displayName || 'Civic Member',
-              photoUrl: data.photoUrl,
+              name: cleanName,
+              photoUrl: data.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=10b981&color=fff`,
               karma,
               reportsCount,
               badge

@@ -14,6 +14,7 @@ import {
 } from '../firebase';
 import { useLanguage } from '../LanguageContext';
 import { useAuth } from '../AuthContext';
+import { deriveDisplayName } from '../utils/nameUtils';
 import {
   ShieldCheck,
   User,
@@ -72,11 +73,12 @@ export default function Login() {
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
+      const cleanName = deriveDisplayName(nameOverride || user.displayName, user.email);
       if (!userDoc.exists()) {
         profileData = {
-          displayName: nameOverride || user.displayName || 'Civic User',
+          displayName: cleanName,
           email: user.email,
-          photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameOverride || user.displayName || 'User')}&background=10b981&color=fff`,
+          photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=10b981&color=fff`,
           role: portalType === 'citizen' ? 'citizen' : (activePreset?.role || 'official'),
           departmentId: portalType === 'citizen' ? null : (activePreset?.deptId || 'municipal'),
           updatedAt: new Date().toISOString(),
@@ -84,7 +86,7 @@ export default function Login() {
         };
         await setDoc(userDocRef, profileData, { merge: true });
       } else {
-        profileData = userDoc.data();
+        profileData = { ...userDoc.data(), displayName: deriveDisplayName(userDoc.data().displayName, user.email) };
       }
       if (profileData) {
         setProfile(profileData);

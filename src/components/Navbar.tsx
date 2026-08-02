@@ -64,9 +64,7 @@ export const Navbar = () => {
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-extrabold shadow-sm">
                   <Building2 className="w-3.5 h-3.5 text-emerald-400" />
                   <span className="capitalize">
-                    {profile?.displayName && profile.displayName !== 'Civic User' 
-                      ? profile.displayName 
-                      : (profile?.departmentId ? `${profile.departmentId} Department` : 'Department Hub')}
+                    {profile?.displayName || (profile?.departmentId ? `${profile.departmentId} Department` : 'Department Hub')}
                   </span>
                 </div>
               )}
@@ -135,9 +133,7 @@ export const Navbar = () => {
                   <UserIcon className="w-4 h-4 text-emerald-400" />
                 )}
                 <span className="text-xs font-bold capitalize">
-                  {profile?.role === 'official' || profile?.role === 'admin'
-                    ? (profile?.displayName && profile.displayName !== 'Civic User' ? profile.displayName : 'Department Hub')
-                    : profile?.displayName}
+                  {profile?.displayName || (profile?.role === 'official' || profile?.role === 'admin' ? 'Department Hub' : 'My Account')}
                 </span>
               </Link>
               <button onClick={handleLogout} className="text-slate-400 hover:text-red-400 transition-colors">

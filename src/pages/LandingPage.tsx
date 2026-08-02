@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db, collection, onSnapshot } from '../firebase';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -20,15 +21,34 @@ import {
   Star,
   ChevronDown
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useLanguage } from '../LanguageContext';
 import { useAuth } from '../AuthContext';
 import { GHMC_ZONES, GHMC_EMERGENCY_HELPLINES, GHMC_QUICK_ACTIONS } from '../constants';
+import BeforeAfterComparison from '../components/BeforeAfterComparison';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { user } = useAuth();
+
+  const [liveIssues, setLiveIssues] = useState<any[]>([]);
+  const [liveUsersCount, setLiveUsersCount] = useState<number>(0);
+
+  useEffect(() => {
+    const unsubIssues = onSnapshot(collection(db, 'issues'), (snapshot) => {
+      setLiveIssues(snapshot.docs.map(d => d.data()));
+    }, (err) => console.warn("Landing live issues snapshot error:", err));
+
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      setLiveUsersCount(snapshot.docs.length);
+    }, (err) => console.warn("Landing live users snapshot error:", err));
+
+    return () => {
+      unsubIssues();
+      unsubUsers();
+    };
+  }, []);
 
   const handleAction = (targetPath: string) => {
     if (!user) {
@@ -38,16 +58,24 @@ export default function LandingPage() {
     }
   };
 
-  // Slider state for Before / After showcase
-  const [sliderPos, setSliderPos] = useState(50);
   const [activeZoneId, setActiveZoneId] = useState('all');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const shouldReduceMotion = useReducedMotion();
+
+  const totalIssues = liveIssues.length;
+  const resolvedIssues = liveIssues.filter(i => i.status === 'resolved').length;
+  const slaRate = totalIssues > 0 ? `${Math.round((resolvedIssues / totalIssues) * 100)}%` : '98.6%';
+  const activeCitizens = Math.max(liveUsersCount, 1);
+  const resolvedIssuesWithProof = liveIssues.filter(
+    (issue) => issue.status === 'resolved' && issue.photoUrl && issue.resolutionPhotoUrl
+  );
+  const featuredResolvedIssue = resolvedIssuesWithProof[0] ?? null;
 
   const stats = [
-    { label: "GHMC Issues Resolved", value: "14,290+", change: "+12% this month" },
+    { label: "GHMC Issues Tracked", value: totalIssues > 0 ? `${totalIssues} Issues` : "Real-Time", change: totalIssues > 0 ? `${resolvedIssues} Resolved Live` : "Live Firestore Stream" },
     { label: "Avg DRF Triage Time", value: "< 15 Mins", change: "AI Auto-Routed" },
-    { label: "SLA Resolution Rate", value: "98.6%", change: "Verified Proofs" },
-    { label: "Active Citizens", value: "85,000+", change: "Across Hyderabad" }
+    { label: "SLA Resolution Rate", value: slaRate, change: "Verified Proofs" },
+    { label: "Active Citizens", value: `${activeCitizens} Registered`, change: "Across Hyderabad Wards" }
   ];
 
   const features = [
@@ -149,7 +177,7 @@ export default function LandingPage() {
   const selectedZoneData = GHMC_ZONES.find(z => z.id === activeZoneId) || GHMC_ZONES[0];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-emerald-500 selection:text-zinc-950">
+    <div className="min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-emerald-500 selection:text-zinc-950 pb-24 md:pb-0">
       {/* Background Radial Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-emerald-500/20 via-teal-500/10 to-transparent blur-[120px] pointer-events-none" />
 
@@ -223,44 +251,44 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative pt-16 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
           className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider mb-8"
         >
           <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-          <span>Greater Hyderabad Municipal Corporation (GHMC) Autonomous Platform</span>
+          <span>Live GHMC Civic Response Platform</span>
         </motion.div>
 
         <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
           className="text-5xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-[1.05] max-w-5xl mx-auto"
         >
-          Transforming Hyderabad with <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Agentic Intelligence</span>
+          Fix City Issues Faster with <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Verified AI Routing</span>
         </motion.h1>
 
         <motion.p 
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.2 }}
           className="mt-8 text-xl sm:text-2xl text-zinc-400 max-w-3xl mx-auto leading-relaxed"
         >
-          Report potholes, waterlogging, waste dumps, and streetlight breakdowns instantly across 6 GHMC zones & 150 wards. AI agents auto-route directly to field squads with verified proof-of-work.
+          Report in seconds. AI triages and routes to the right GHMC team. Citizens get transparent proof-of-work updates.
         </motion.p>
 
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.3 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <button 
             onClick={() => handleAction('/report')}
             className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-8 py-4 rounded-2xl font-extrabold text-lg transition-all shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 group"
           >
-            <span>Report Issue to GHMC</span>
+            <span>Report an Issue</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
           <button 
@@ -274,17 +302,26 @@ export default function LandingPage() {
 
         {/* Live Hero Stats Bar */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-4 bg-zinc-900/60 border border-zinc-800 p-6 rounded-3xl backdrop-blur-xl"
+          transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.4 }}
+          className="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-4 bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-3xl backdrop-blur-2xl shadow-2xl relative overflow-hidden"
         >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           {stats.map((stat, i) => (
-            <div key={i} className="text-left p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/60">
-              <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400">{stat.value}</div>
-              <div className="text-sm font-semibold text-zinc-300 mt-1">{stat.label}</div>
-              <div className="text-xs text-zinc-500 mt-0.5">{stat.change}</div>
-            </div>
+            <motion.div 
+              key={i} 
+              whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+              className="text-left p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all group"
+            >
+              <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">{stat.value}</div>
+              <div className="text-sm font-extrabold text-white mt-1.5">{stat.label}</div>
+              <div className="text-xs text-zinc-400 mt-1 flex items-center gap-1.5 font-medium">
+                <span className={`w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0 ${shouldReduceMotion ? '' : 'animate-ping'}`} />
+                <span>{stat.change}</span>
+              </div>
+            </motion.div>
           ))}
         </motion.div>
       </section>
@@ -308,7 +345,7 @@ export default function LandingPage() {
             {GHMC_QUICK_ACTIONS.map((action) => (
               <motion.div
                 key={action.id}
-                whileHover={{ scale: 1.02 }}
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
                 onClick={() => handleAction('/report')}
                 className={`bg-gradient-to-br ${action.bgGradient} border ${action.border} p-6 rounded-2xl cursor-pointer transition-all flex flex-col justify-between group hover:shadow-xl`}
               >
@@ -517,7 +554,7 @@ export default function LandingPage() {
           {features.map((feat, i) => (
             <motion.div 
               key={i}
-              whileHover={{ y: -6 }}
+              whileHover={shouldReduceMotion ? undefined : { y: -6 }}
               className="bg-zinc-900/80 border border-zinc-800 p-8 rounded-3xl relative overflow-hidden group hover:border-emerald-500/50 transition-colors"
             >
               <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-zinc-950 transition-colors">
@@ -666,54 +703,28 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Interactive Split Image Slider */}
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl select-none group">
-              {/* After Image (Background) */}
-              <img 
-                src="https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=1200" 
-                alt="Resolved Infrastructure" 
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute top-4 right-4 bg-emerald-500 text-zinc-950 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider z-10 shadow-lg">
-                AFTER (RESOLVED)
-              </div>
-
-              {/* Before Image (Foreground clipped by slider) */}
-              <div 
-                className="absolute inset-0 overflow-hidden" 
-                style={{ width: `${sliderPos}%` }}
-              >
-                <img 
-                  src="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=1200" 
-                  alt="Reported Pothole" 
-                  className="absolute inset-0 w-full h-full object-cover max-w-none"
-                  style={{ width: `100%`, height: '100%' }}
-                />
-                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
-                  BEFORE (REPORTED)
+            {featuredResolvedIssue ? (
+              <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-4 shadow-2xl">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider">Live Verified Resolution</span>
+                  <span className="text-[11px] font-semibold text-zinc-400">{featuredResolvedIssue.title || 'Municipal Issue'}</span>
                 </div>
+                <BeforeAfterComparison issue={featuredResolvedIssue} />
               </div>
-
-              {/* Slider Divider Bar */}
-              <div 
-                className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-2xl"
-                style={{ left: `${sliderPos}%` }}
-              >
-                <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white text-zinc-950 flex items-center justify-center font-bold text-xs shadow-xl border-2 border-emerald-500">
-                  ↔
-                </div>
+            ) : (
+              <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 shadow-2xl space-y-4">
+                <h3 className="text-xl font-extrabold text-white">No verified proof card yet</h3>
+                <p className="text-zinc-400 text-sm">
+                  Once officials publish a resolved report with before/after media, it will appear here automatically.
+                </p>
+                <button
+                  onClick={() => handleAction('/report')}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+                >
+                  Submit First Verified Report
+                </button>
               </div>
-
-              {/* Hidden Input Range Control */}
-              <input 
-                type="range" 
-                min="0" 
-                max="100" 
-                value={sliderPos}
-                onChange={(e) => setSliderPos(Number(e.target.value))}
-                className="absolute inset-0 opacity-0 cursor-ew-resize z-30 w-full h-full"
-              />
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -785,25 +796,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-zinc-950 border-t border-zinc-800 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-zinc-950" />
-            </div>
-            <span className="text-xl font-bold text-white">{t('appName')}</span>
-            <span className="text-xs text-zinc-500 font-mono">© 2026 GHMC Smart City Platform</span>
-          </div>
-
-          <div className="flex gap-6 text-sm text-zinc-400 font-medium">
-            <button onClick={() => handleAction('/feed')} className="hover:text-emerald-400 transition-colors">Civic Feed</button>
-            <button onClick={() => handleAction('/map')} className="hover:text-emerald-400 transition-colors">City Map</button>
-            <button onClick={() => handleAction('/analytics')} className="hover:text-emerald-400 transition-colors">Analytics</button>
-            <button onClick={() => navigate('/login')} className="hover:text-emerald-400 transition-colors">Sign In</button>
-          </div>
-        </div>
-      </footer>
+      {/* Mobile Sticky CTA */}
+      <div className="fixed bottom-4 inset-x-4 z-40 md:hidden">
+        <button
+          onClick={() => handleAction('/report')}
+          className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 py-3.5 rounded-2xl font-extrabold text-base shadow-[0_12px_35px_rgba(16,185,129,0.35)]"
+        >
+          Report an Issue
+        </button>
+      </div>
     </div>
   );
 }

@@ -68,3 +68,10 @@
 .markdown-body {
   @apply prose prose-invert max-w-none;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ping,
+  .animate-pulse {
+    animation: none !important;
+  }
+}
