@@ -7,6 +7,7 @@ import { Camera, MapPin, Send, Loader2, CheckCircle2, Video, Truck, Zap, Droplet
 import { motion, AnimatePresence } from 'motion/react';
 import { DEPARTMENTS, ISSUE_CATEGORIES } from '../constants';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import { compressAndConvertToDataUrl } from '../utils/imageUtils';
 
 const mapContainerStyle = {
   width: '100%',
@@ -249,16 +250,20 @@ export default function ReportIssue() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      if (type === 'photo') {
-        setFormData(prev => ({ ...prev, photoUrl: url }));
-        setScanningPhoto(true);
-        setTimeout(() => setScanningPhoto(false), 2500);
-      } else {
-        setFormData(prev => ({ ...prev, videoUrl: url }));
+      try {
+        const url = await compressAndConvertToDataUrl(file);
+        if (type === 'photo') {
+          setFormData(prev => ({ ...prev, photoUrl: url }));
+          setScanningPhoto(true);
+          setTimeout(() => setScanningPhoto(false), 2500);
+        } else {
+          setFormData(prev => ({ ...prev, videoUrl: url }));
+        }
+      } catch (err) {
+        console.error("Failed to process uploaded file:", err);
       }
     }
   };

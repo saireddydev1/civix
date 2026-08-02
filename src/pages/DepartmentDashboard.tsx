@@ -5,6 +5,7 @@ import { useAuth } from '../AuthContext';
 import { Building2, CheckCircle2, Clock, AlertCircle, Image as ImageIcon, Loader2, Truck, Zap, Droplets, GraduationCap, HeartPulse, Camera, Sparkles, ShieldCheck, Upload, MapPin, X, FileText, ShieldAlert, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import BeforeAfterComparison from '../components/BeforeAfterComparison';
+import { compressAndConvertToDataUrl, getValidImageUrl, DEFAULT_CIVIC_IMAGE } from '../utils/imageUtils';
 
 const OFFICIAL_EMAILS = [
   'municipal@civix.gov.in',
@@ -69,16 +70,18 @@ export default function DepartmentDashboard() {
     setRepairPhotoUrl(issue.resolutionPhotoUrl || 'https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=800&auto=format&fit=crop');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploadingPhoto(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setRepairPhotoUrl(reader.result as string);
+      try {
+        const dataUrl = await compressAndConvertToDataUrl(file);
+        setRepairPhotoUrl(dataUrl);
+      } catch (err) {
+        console.error("Failed to process resolution photo:", err);
+      } finally {
         setUploadingPhoto(false);
-      };
-      reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -226,13 +229,16 @@ export default function DepartmentDashboard() {
           {pendingIssues.map((issue: any) => (
             <div key={issue.id} className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row gap-6 items-start shadow-xl backdrop-blur-xl hover:border-slate-700 transition-all">
               <div className="w-full md:w-52 aspect-video rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center shrink-0 border border-slate-800 relative">
-                {issue.photoUrl ? (
-                  <img src={issue.photoUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="text-slate-600">
-                    <Camera className="w-8 h-8" />
-                  </div>
-                )}
+                <img 
+                  src={getValidImageUrl(issue.photoUrl, DEFAULT_CIVIC_IMAGE)} 
+                  alt={issue.title}
+                  className="w-full h-full object-cover" 
+                  referrerPolicy="no-referrer" 
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_CIVIC_IMAGE;
+                  }}
+                />
                 <div className="absolute top-2 left-2 bg-red-500/90 text-white text-[9px] font-bold px-2 py-0.5 rounded">
                   🔴 PROBLEM
                 </div>

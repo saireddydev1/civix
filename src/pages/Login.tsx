@@ -220,7 +220,7 @@ export default function Login() {
         photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(preset.name)}&background=10b981&color=fff`,
         updatedAt: new Date().toISOString()
       };
-      await setDoc(userDocRef, officialProfile, { merge: true });
+      await setDoc(doc(db, 'users', user.uid), officialProfile, { merge: true });
       setProfile(officialProfile);
 
       navigate('/department', { replace: true });

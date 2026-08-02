@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, ShieldCheck, UserCheck, Clock, Building2, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { getValidImageUrl, DEFAULT_CIVIC_IMAGE, DEFAULT_RESOLUTION_IMAGE } from '../utils/imageUtils';
 
 interface IssueProps {
   photoUrl?: string;
@@ -16,8 +17,8 @@ interface IssueProps {
 }
 
 export default function BeforeAfterComparison({ issue }: { issue: IssueProps }) {
-  const beforePhoto = issue.photoUrl || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=800&auto=format&fit=crop';
-  const afterPhoto = issue.resolutionPhotoUrl || 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?q=80&w=800&auto=format&fit=crop';
+  const beforePhoto = getValidImageUrl(issue.photoUrl, DEFAULT_CIVIC_IMAGE);
+  const afterPhoto = getValidImageUrl(issue.resolutionPhotoUrl, DEFAULT_RESOLUTION_IMAGE);
 
   const officialName = issue.resolvedByOfficialName || issue.officialName || 'Er. K. Rajeshwar Rao (Field Engineer)';
   
@@ -49,6 +50,10 @@ export default function BeforeAfterComparison({ issue }: { issue: IssueProps }) 
             alt="Reported Problem Before" 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_CIVIC_IMAGE;
+            }}
           />
           <div className="absolute top-2 left-2 bg-red-500/90 backdrop-blur-md text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-lg">
             <span>🔴</span> BEFORE
@@ -65,6 +70,10 @@ export default function BeforeAfterComparison({ issue }: { issue: IssueProps }) 
             alt="Fixed Resolution After" 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_RESOLUTION_IMAGE;
+            }}
           />
           <div className="absolute top-2 left-2 bg-emerald-500/90 backdrop-blur-md text-slate-950 text-[9px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-lg">
             <span>🟢</span> AFTER

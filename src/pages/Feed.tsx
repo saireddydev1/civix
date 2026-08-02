@@ -9,6 +9,7 @@ import { useLanguage } from '../LanguageContext';
 import { GHMC_ZONES } from '../constants';
 
 import BeforeAfterComparison from '../components/BeforeAfterComparison';
+import { getValidImageUrl, DEFAULT_CIVIC_IMAGE } from '../utils/imageUtils';
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -280,16 +281,20 @@ export default function Feed() {
               <div className="px-6 pt-4">
                 <BeforeAfterComparison issue={issue} />
               </div>
-            ) : issue.photoUrl ? (
+            ) : (
               <div className="aspect-video w-full overflow-hidden bg-slate-950 relative">
                 <img
-                  src={issue.photoUrl}
+                  src={getValidImageUrl(issue.photoUrl, DEFAULT_CIVIC_IMAGE)}
                   alt={issue.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_CIVIC_IMAGE;
+                  }}
                 />
               </div>
-            ) : null}
+            )}
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-start">
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${issue.status === 'resolved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
